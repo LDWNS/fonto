@@ -1,7 +1,6 @@
-// import { SVGCircle } from "./SVGCircle.js";
-// import { SVGLine } from "./SVGLine.js";
+import { SVGCircle, SVGLine } from "./classes.js";
 
-const loadHistory = () => {
+const loadHistory = (svg) => {
   const hydratedList = {};
   Object.entries(JSON.parse(localStorage.getItem("history") ?? "{}")).forEach(
     ([_, item]) => {
@@ -9,9 +8,11 @@ const loadHistory = () => {
       switch (item.type) {
         case "circle":
           newItem = SVGCircle.fromHistory(item);
+          svg.appendChild(newItem.circle);
           break;
         case "line":
           newItem = SVGLine.fromHistory(item);
+          svg.appendChild(newItem.line);
           break;
         default:
           break;
@@ -26,9 +27,9 @@ const loadHistory = () => {
 class Store {
   constructor(initialState) {
     this.state = {
-      history: loadHistory(),
       ...initialState,
     };
+    this.state.history = loadHistory(this.state.svg);
     this.listeners = [];
   }
 
@@ -44,5 +45,20 @@ class Store {
     this.state = { ...this.state, ...newState };
     this.listeners.forEach((listener) => listener());
   }
+
+  save = (item) => {
+    if (item) {
+      this.state.history[item.id] = item;
+    }
+    localStorage.setItem("history", JSON.stringify(this.state.history));
+    this.listeners.forEach((listener) => listener());
+  };
+  remove = (id) => {
+    if (id) {
+      delete this.state.history[id];
+    }
+    localStorage.setItem("history", JSON.stringify(history));
+    this.listeners.forEach((listener) => listener());
+  };
 }
 export { Store };

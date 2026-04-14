@@ -1,45 +1,18 @@
-import { SVGCircle } from "./classes.js";
-import { SVGLine } from "./classes.js";
-// import { Store } from "./globalstate.js";
+import { SVGCircle, SVGLine } from "./classes.js";
+import { Store } from "./globalstate.js";
 
 const svg = document.querySelector("svg");
 const modeSpan = document.querySelector("#mode");
 
-// const globalState = new Store({ svg: svg });
+const gs = new Store({ svg: svg });
 
-const loadHistory = () => {
-  const hydratedList = {};
-  Object.entries(JSON.parse(localStorage.getItem("history") ?? "{}")).forEach(
-    ([_, item]) => {
-      let newItem;
-      switch (item.type) {
-        case "circle":
-          newItem = SVGCircle.fromHistory(item);
-          svg.appendChild(newItem.circle);
-          break;
-        case "line":
-          newItem = SVGLine.fromHistory(item);
-          svg.appendChild(newItem.line);
-          break;
-        default:
-          break;
-      }
-      if (newItem) {
-        hydratedList[newItem.id] = newItem;
-      }
-    },
-  );
-  return hydratedList;
-};
-const save = (item) => {
-  if (item) {
-    history[item.id] = item;
-  }
-  localStorage.setItem("history", JSON.stringify(history));
-};
-const history = loadHistory();
+let history = gs.state.history;
+let currentPath = gs.state.currentPath;
 
-let currentPath = null;
+gs.subscribe(() => {
+  history = gs.state.history;
+  currentPath = gs.state.currentPath;
+});
 
 const { left, top } = svg.getBoundingClientRect();
 const clickToCanvasCoords = ({ clientX, clientY }) => {
@@ -55,22 +28,24 @@ const draw = (event, objCreator) => {
     if (!currentPath) {
       objCreator(x, y);
     } else {
-      currentPath = null;
+      gs.setState({ currentPath: null });
       return;
     }
   }
-  currentPath.draw({ x, y }, save);
+  currentPath.draw({ x, y }, (item) => gs.save(item));
 };
 const drawCircle = (event) => {
   draw(event, (x, y) => {
-    currentPath = new SVGCircle(x, y, 4);
-    svg.appendChild(currentPath.circle);
+    const temp = new SVGCircle(x, y, 4);
+    gs.setState({ currentPath: temp });
+    svg.appendChild(temp.circle);
   });
 };
 const drawLine = (event) => {
   draw(event, (x, y) => {
-    currentPath = new SVGLine(x, y);
-    svg.appendChild(currentPath.line);
+    const temp = new SVGLine(x, y);
+    gs.setState({ currentPath: temp });
+    svg.appendChild(temp.line);
   });
 };
 const updateMode = (newMode) => {
@@ -84,11 +59,11 @@ const select = (event) => {
     case "click":
       switch (event.target.nodeName) {
         case "circle":
-          currentPath = history[event.target.id];
+          gs.setState({ currentPath: history[event.target.id] });
           updateMode("CIRCLE");
           break;
         case "line":
-          currentPath = history[event.target.id];
+          gs.setState({ currentPath: history[event.target.id] });
           updateMode("LINE");
           break;
 
@@ -131,10 +106,9 @@ document.addEventListener("keydown", (event) => {
       if (mode !== "SELECT") {
         const x = svg.querySelector(`#${currentPath.id}`);
         svg.removeChild(x);
-        delete history[currentPath.id];
-        save();
+        gs.remove(currentPath.id);
       }
-      currentPath = null;
+      gs.setState({ currentPath: null });
       break;
     default:
       return;
