@@ -1,90 +1,54 @@
-import { SVGCircle, SVGLine } from "./classes.js";
 import { Store } from "./globalstate.js";
+import { Drawer } from "./modes/draw.js";
+import { Selector } from "./modes/select.js";
+import { Editor } from "./modes/edit.js";
 
 const svg = document.querySelector("svg");
 const modeSpan = document.querySelector("#mode");
 
-const gs = new Store({ svg: svg });
+const { left, top } = svg.getBoundingClientRect();
+const gs = new Store({ svg: svg, window: { left, top }, mode: "CIRCLE" });
+const drawer = new Drawer(gs);
+const selector = new Selector(gs);
+const editor = new Editor(gs);
 
 let history = gs.state.history;
 let currentPath = gs.state.currentPath;
+let mode = gs.state.mode;
 
-gs.subscribe(() => {
-  history = gs.state.history;
-  currentPath = gs.state.currentPath;
-});
-
-const { left, top } = svg.getBoundingClientRect();
-const clickToCanvasCoords = ({ clientX, clientY }) => {
-  return { x: clientX - left, y: clientY - top };
-};
-const draw = (event, objCreator) => {
-  let toggle = event.type === "click";
-  if (!toggle && !currentPath) {
-    return;
-  }
-  const { x, y } = clickToCanvasCoords(event);
-  if (toggle) {
-    if (!currentPath) {
-      objCreator(x, y);
-    } else {
-      gs.setState({ currentPath: null });
-      return;
-    }
-  }
-  currentPath.draw({ x, y }, (item) => gs.save(item));
-};
-const drawCircle = (event) => {
-  draw(event, (x, y) => {
-    const temp = new SVGCircle(x, y, 4);
-    gs.setState({ currentPath: temp });
-    svg.appendChild(temp.circle);
-  });
-};
-const drawLine = (event) => {
-  draw(event, (x, y) => {
-    const temp = new SVGLine(x, y);
-    gs.setState({ currentPath: temp });
-    svg.appendChild(temp.line);
-  });
-};
 const updateMode = (newMode) => {
-  mode = newMode;
+  gs.setState({ mode: newMode });
   modeSpan.innerHTML = `${mode}`;
   modeSpan.style.color = modes[newMode].style.color;
   modeSpan.style.fontWeight = "bold";
-};
-const select = (event) => {
-  switch (event.type) {
-    case "click":
-      switch (event.target.nodeName) {
-        case "circle":
-          gs.setState({ currentPath: history[event.target.id] });
-          updateMode("CIRCLE");
-          break;
-        case "line":
-          gs.setState({ currentPath: history[event.target.id] });
-          updateMode("LINE");
-          break;
-
-        default:
-          break;
-      }
-      break;
-    default:
-      break;
+  if (newMode === "SELECT") {
+    svg.classList = ["select-mode"];
+  } else {
+    svg.classList = [];
   }
 };
+
 const modes = {
-  CIRCLE: { do: drawCircle, style: { color: "#206" } },
-  LINE: { do: drawLine, style: { color: "#920" } },
+  CIRCLE: { do: (event) => drawer.drawCircle(event), style: { color: "#206" } },
+  LINE: { do: (event) => drawer.drawLine(event), style: { color: "#920" } },
   // "CIRCLE-EDIT": { do: editCircle, style: { color: "#206" } },
-  // "LINE-EDIT": { do: editLine, style: { color: "#920" } },
-  SELECT: { do: select, style: { color: "#290" } },
+  "LINE-EDIT": {
+    do: (event) => editor.editLine(event),
+    style: { color: "#920" },
+  },
+  SELECT: {
+    do: (event) => selector.select(event, updateMode),
+    style: { color: "#290" },
+  },
 };
-let mode;
 updateMode("CIRCLE");
-modeSpan.innerHTML = mode;
+gs.subscribe(() => {
+  history = gs.state.history;
+  currentPath = gs.state.currentPath;
+  mode = gs.state.mode;
+});
+
+// Event Listeners
 svg.addEventListener("click", (event) => modes[mode].do(event));
 svg.addEventListener("mousemove", (event) => modes[mode].do(event));
 document.addEventListener("keydown", (event) => {
@@ -92,15 +56,12 @@ document.addEventListener("keydown", (event) => {
   switch (event.key) {
     case "c":
       newMode = "CIRCLE";
-      svg.classList = [];
       break;
     case "l":
       newMode = "LINE";
-      svg.classList = [];
       break;
     case "s":
       newMode = "SELECT";
-      svg.classList = ["select-mode"];
       break;
     case "Escape":
       if (mode !== "SELECT") {

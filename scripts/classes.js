@@ -82,6 +82,12 @@ class SVGLine {
     }
     save(this);
   }
+  getEditPoints() {
+    return {
+      a: { x: this.x1, y: this.y1 },
+      b: { x: this.x2, y: this.y2 },
+    };
+  }
   static fromHistory(line) {
     const newC = new SVGLine(line.x1, line.y1);
     newC.id = line.id;
