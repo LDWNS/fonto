@@ -1,3 +1,6 @@
+// import { SVGCircle } from "./SVGCircle.js";
+// import { SVGLine } from "./SVGLine.js";
+
 const loadHistory = () => {
   const hydratedList = {};
   Object.entries(JSON.parse(localStorage.getItem("history") ?? "{}")).forEach(

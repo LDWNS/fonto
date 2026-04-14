@@ -1,12 +1,36 @@
 import { SVGCircle } from "./classes.js";
 import { SVGLine } from "./classes.js";
-import { Store } from "./globalstate.js";
+// import { Store } from "./globalstate.js";
 
 const svg = document.querySelector("svg");
 const modeSpan = document.querySelector("#mode");
 
-const globalState = new Store({ svg: svg });
+// const globalState = new Store({ svg: svg });
 
+const loadHistory = () => {
+  const hydratedList = {};
+  Object.entries(JSON.parse(localStorage.getItem("history") ?? "{}")).forEach(
+    ([_, item]) => {
+      let newItem;
+      switch (item.type) {
+        case "circle":
+          newItem = SVGCircle.fromHistory(item);
+          svg.appendChild(newItem.circle);
+          break;
+        case "line":
+          newItem = SVGLine.fromHistory(item);
+          svg.appendChild(newItem.line);
+          break;
+        default:
+          break;
+      }
+      if (newItem) {
+        hydratedList[newItem.id] = newItem;
+      }
+    },
+  );
+  return hydratedList;
+};
 const save = (item) => {
   if (item) {
     history[item.id] = item;
