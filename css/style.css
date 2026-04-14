@@ -1,0 +1,42 @@
+body {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  background-color: #eee;
+  justify-content: center;
+  align-items: center;
+}
+div {
+  position: relative;
+}
+canvas {
+  border: 1px solid #fff;
+  z-index: 0;
+  position: relative;
+  z-index: 1;
+}
+svg {
+  border: 1px solid #fff;
+  line,
+  circle,
+  path {
+    stroke-width: 3px;
+  }
+  &.select-mode {
+    line,
+    circle,
+    path {
+      &:hover {
+        stroke: blue;
+      }
+    }
+  }
+}
+
+p {
+  width: 500px;
+  padding: 0;
+  margin: 0;
+}
