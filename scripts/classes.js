@@ -26,7 +26,13 @@ class SVGCircle {
     this.attributes[field] = value;
     return this;
   }
-  draw({ x, y }, save) {
+  setOrigin({ x, y }) {
+    this.x = x;
+    this.y = y;
+    this.isDrawing = false;
+    return this;
+  }
+  update({ x, y }, save) {
     if (!this.isDrawing) {
       this.isDrawing = true;
       this.setAttribute("cx", this.x);
@@ -69,7 +75,7 @@ class SVGLine {
     this.attributes[field] = value;
     return this;
   }
-  draw({ x, y }, save) {
+  update({ x, y }, save) {
     if (!this.isDrawing) {
       this.isDrawing = true;
       this.setAttribute("x1", this.x1);
@@ -77,6 +83,22 @@ class SVGLine {
       this.setAttribute("x2", this.x2);
       this.setAttribute("y2", this.y2);
     } else {
+      this.x2 = x;
+      this.y2 = y;
+      this.setAttribute("x2", x);
+      this.setAttribute("y2", y);
+    }
+    save(this);
+  }
+  edit({ x, y, id }, save) {
+    if (id === "start") {
+      this.x1 = x;
+      this.y1 = y;
+      this.setAttribute("x1", x);
+      this.setAttribute("y1", y);
+    } else {
+      this.x2 = x;
+      this.y2 = y;
       this.setAttribute("x2", x);
       this.setAttribute("y2", y);
     }
@@ -84,8 +106,8 @@ class SVGLine {
   }
   getEditPoints() {
     return {
-      a: { x: this.x1, y: this.y1 },
-      b: { x: this.x2, y: this.y2 },
+      start: { x: this.x1, y: this.y1 },
+      end: { x: this.x2, y: this.y2 },
     };
   }
   static fromHistory(line) {

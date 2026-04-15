@@ -17,6 +17,9 @@ let currentPath = gs.state.currentPath;
 let mode = gs.state.mode;
 
 const updateMode = (newMode) => {
+  if (mode.includes("EDIT") && !newMode.includes("EDIT")) {
+    editor.exitEditMode();
+  }
   gs.setState({ mode: newMode });
   modeSpan.innerHTML = `${mode}`;
   modeSpan.style.color = modes[newMode].style.color;
@@ -37,7 +40,11 @@ const modes = {
     style: { color: "#920" },
   },
   SELECT: {
-    do: (event) => selector.select(event, updateMode),
+    do: (event) =>
+      selector.select(event, (newMode) => {
+        updateMode(newMode);
+        editor.editLine(event);
+      }),
     style: { color: "#290" },
   },
 };
@@ -50,7 +57,9 @@ gs.subscribe(() => {
 
 // Event Listeners
 svg.addEventListener("click", (event) => modes[mode].do(event));
+svg.addEventListener("mousedown", (event) => modes[mode].do(event));
 svg.addEventListener("mousemove", (event) => modes[mode].do(event));
+svg.addEventListener("mouseup", (event) => modes[mode].do(event));
 document.addEventListener("keydown", (event) => {
   let newMode;
   switch (event.key) {

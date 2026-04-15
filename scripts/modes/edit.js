@@ -8,7 +8,9 @@ export class Editor {
     this.top = gs.state.window.top;
     this.left = gs.state.window.left;
     this.isEditing = false;
-    this.points = {};
+    this.originalPoints = {};
+    this.updatedPoints = {};
+    this.movingPoint = null;
     gs.subscribe(() => {
       this.svg = gs.state.svg;
       this.currentPath = gs.state.currentPath;
@@ -19,19 +21,53 @@ export class Editor {
   #pointerToSvgCoords({ clientX, clientY }) {
     return { x: clientX - this.left, y: clientY - this.top };
   }
-  editLine() {
-    if (!this.currentPath || this.currentPath.type !== "LINE") {
+  exitEditMode() {
+    if (!this.isEditing) {
+      return;
+    }
+    this.isEditing = false;
+    this.originalPoints = {};
+    for (const key in this.updatedPoints) {
+      this.svg.removeChild(this.updatedPoints[key].circle);
+    }
+    this.updatedPoints = {};
+    this.gs.setState({ currentPath: null });
+  }
+  editLine(event) {
+    if (!this.currentPath || this.currentPath.type !== "line") {
       return;
     }
     if (!this.isEditing) {
       this.isEditing = true;
-      this.points = this.currentPath.getEditPoints();
-      this.svg = new SVGCircle(this.points["a"].x, this.points["a"].y, 4)
-        .setAttribute("data-edit", "true")
-        .draw({ x: this.points["a"].x, y: this.points["a"].y }, () => {});
-      this.svg = new SVGCircle(this.points["b"].x, this.points["b"].y, 4)
-        .setAttribute("data-edit", "true")
-        .draw({ x: this.points["b"].x, y: this.points["b"].y }, () => {});
+      this.originalPoints = this.currentPath.getEditPoints();
+      for (const key in this.originalPoints) {
+        const { x, y } = this.originalPoints[key];
+        this.updatedPoints[key] = new SVGCircle(x, y, 5)
+          .setAttribute("data-edit", "true")
+          .setAttribute("data-point", key)
+          .setAttribute("fill", "#000")
+          .update({ x, y }, () => {});
+      }
+      for (const key in this.updatedPoints) {
+        this.svg.appendChild(this.updatedPoints[key].circle);
+      }
+      return;
+    }
+    if (event.type === "mousedown" && !this.movingPoint) {
+      const key = event.target.getAttribute("data-point");
+      this.movingPoint = this.updatedPoints[key];
+      return;
+    }
+    if (event.type === "mousemove" && this.isEditing && this.movingPoint) {
+      const { x, y } = this.#pointerToSvgCoords(event);
+      this.movingPoint.setOrigin({ x, y }).update({ x, y }, () => {});
+      this.currentPath.edit(
+        { x, y, id: this.movingPoint.attributes["data-point"] },
+        (item) => this.gs.save(item),
+      );
+    }
+    if (event.type === "mouseup" && this.movingPoint) {
+      this.movingPoint = null;
     }
   }
 }

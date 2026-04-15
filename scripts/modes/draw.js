@@ -31,20 +31,20 @@ export class Drawer {
         return;
       }
     }
-    this.currentPath.draw({ x, y }, (item) => this.gs.save(item));
+    this.currentPath.update({ x, y }, (item) => this.gs.save(item));
   }
   drawCircle = (event) => {
     this.#draw(event, (x, y) => {
       const temp = new SVGCircle(x, y, 4);
       this.gs.setState({ currentPath: temp });
-      svg.appendChild(temp.circle);
+      this.svg.appendChild(temp.circle);
     });
   };
   drawLine = (event) => {
     this.#draw(event, (x, y) => {
       const temp = new SVGLine(x, y);
       this.gs.setState({ currentPath: temp });
-      svg.appendChild(temp.line);
+      this.svg.appendChild(temp.line);
     });
   };
 }

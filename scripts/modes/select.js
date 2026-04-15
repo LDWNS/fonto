@@ -16,7 +16,7 @@ export class Selector {
             break;
           case "line":
             this.gs.setState({ currentPath: this.history[event.target.id] });
-            updateMode("LINE");
+            updateMode("LINE-EDIT");
             break;
 
           default:
