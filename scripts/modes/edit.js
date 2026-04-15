@@ -70,11 +70,20 @@ export class Editor {
     if (event.type === "mouseup" && this.movingPoint) {
       this.movingPoint = null;
     }
+    if (event.type === "dblclick") {
+      this.currentPath.editNode(
+        { id: event.target.getAttribute("data-point") },
+        (item) => this.gs.save(item),
+      );
+    }
   }
   editCircle(event) {
-    edit(event, "circle");
+    this.edit(event, "circle");
   }
   editLine(event) {
-    edit(event, "line");
+    this.edit(event, "line");
+  }
+  editPath(event) {
+    this.edit(event, "path");
   }
 }

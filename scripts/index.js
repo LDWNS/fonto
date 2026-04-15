@@ -36,14 +36,18 @@ const updateMode = (newMode) => {
 
 const modes = {
   CIRCLE: { do: (event) => drawer.drawCircle(event), style: { color: "#206" } },
-  LINE: { do: (event) => drawer.drawLine(event), style: { color: "#920" } },
-  PATH: { do: (event) => drawer.drawPath(event), style: { color: "#699" } },
   "CIRCLE-EDIT": {
     do: (event) => editor.editCircle(event),
     style: { color: "#206" },
   },
+  LINE: { do: (event) => drawer.drawLine(event), style: { color: "#920" } },
   "LINE-EDIT": {
     do: (event) => editor.editLine(event),
+    style: { color: "#920" },
+  },
+  PATH: { do: (event) => drawer.drawPath(event), style: { color: "#699" } },
+  "PATH-EDIT": {
+    do: (event) => editor.editPath(event),
     style: { color: "#920" },
   },
   SELECT: {
@@ -71,6 +75,7 @@ svg.addEventListener("click", (event) => modes[mode].do(event));
 svg.addEventListener("mousedown", (event) => modes[mode].do(event));
 svg.addEventListener("mousemove", (event) => modes[mode].do(event));
 svg.addEventListener("mouseup", (event) => modes[mode].do(event));
+svg.addEventListener("dblclick", (event) => modes[mode].do(event));
 document.addEventListener("keydown", (event) => {
   let newMode;
   switch (event.key) {
@@ -83,9 +88,19 @@ document.addEventListener("keydown", (event) => {
     case "l":
       newMode = "LINE";
       break;
-    case "Escape":
     case "s":
       newMode = "SELECT";
+    case "Escape":
+      if (mode.includes("-EDIT")) {
+        newMode = "SELECT";
+      }
+      drawer.clearPreview();
+      gs.setState({ currentPath: null });
+      break;
+    case "w":
+      svg.innerHTML = "";
+      localStorage.clear();
+      gs.setState({ currentPath: null, svg: svg });
       break;
     case "Backspace":
       if (mode === "SELECT") {
