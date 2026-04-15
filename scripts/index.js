@@ -7,7 +7,7 @@ const svg = document.querySelector("svg");
 const modeSpan = document.querySelector("#mode");
 
 const { left, top } = svg.getBoundingClientRect();
-const gs = new Store({ svg: svg, window: { left, top }, mode: "CIRCLE" });
+const gs = new Store({ svg: svg, window: { left, top }, mode: "SELECT" });
 const drawer = new Drawer(gs);
 const selector = new Selector(gs);
 const editor = new Editor(gs);
@@ -34,7 +34,10 @@ const updateMode = (newMode) => {
 const modes = {
   CIRCLE: { do: (event) => drawer.drawCircle(event), style: { color: "#206" } },
   LINE: { do: (event) => drawer.drawLine(event), style: { color: "#920" } },
-  // "CIRCLE-EDIT": { do: editCircle, style: { color: "#206" } },
+  "CIRCLE-EDIT": {
+    do: (event) => editor.editCircle(event),
+    style: { color: "#206" },
+  },
   "LINE-EDIT": {
     do: (event) => editor.editLine(event),
     style: { color: "#920" },
@@ -43,12 +46,16 @@ const modes = {
     do: (event) =>
       selector.select(event, (newMode) => {
         updateMode(newMode);
-        editor.editLine(event);
+        if (newMode === "LINE-EDIT") {
+          editor.editLine(event);
+        } else if (newMode === "CIRCLE-EDIT") {
+          editor.editCircle(event);
+        }
       }),
     style: { color: "#290" },
   },
 };
-updateMode("CIRCLE");
+updateMode("SELECT");
 gs.subscribe(() => {
   history = gs.state.history;
   currentPath = gs.state.currentPath;
@@ -69,16 +76,19 @@ document.addEventListener("keydown", (event) => {
     case "l":
       newMode = "LINE";
       break;
+    case "Escape":
     case "s":
       newMode = "SELECT";
       break;
-    case "Escape":
-      if (mode !== "SELECT") {
-        const x = svg.querySelector(`#${currentPath.id}`);
-        svg.removeChild(x);
-        gs.remove(currentPath.id);
+    case "Backspace":
+      if (mode === "SELECT") {
+        return;
       }
+      const x = svg.querySelector(`#${currentPath.id}`);
+      svg.removeChild(x);
+      gs.remove(currentPath.id);
       gs.setState({ currentPath: null });
+      newMode = "SELECT";
       break;
     default:
       return;

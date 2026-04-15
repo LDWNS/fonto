@@ -20,7 +20,7 @@ canvas {
 svg {
   border: 1px solid #fff;
   line,
-  circle,
+  circle:not([data-edit]),
   path {
     stroke-width: 3px;
   }

@@ -4,6 +4,7 @@ const uid = function () {
 const distance = ({ x1, y1, x2, y2 }) => {
   return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
 };
+// TODO: change circle to ellipse
 class SVGCircle {
   constructor(x, y, r) {
     this.id = uid();
@@ -18,8 +19,17 @@ class SVGCircle {
     this.isDrawing = false;
     this.attributes = {};
     this.setAttribute("stroke", "#333");
+    this.setAttribute("stroke-width", "2px");
     this.setAttribute("fill", "none");
     this.setAttribute("id", this.id);
+  }
+  static fromHistory(circle) {
+    const newC = new SVGCircle(circle.x, circle.y, circle.r);
+    newC.id = circle.id;
+    Object.entries(circle.attributes).forEach(([field, value]) => {
+      newC.setAttribute(field, value);
+    });
+    return newC;
   }
   setAttribute(field, value) {
     this.circle.setAttribute(field, value);
@@ -39,21 +49,29 @@ class SVGCircle {
       this.setAttribute("cy", this.y);
       this.setAttribute("r", this.r);
     } else {
-      this.setAttribute(
-        "r",
-        distance({ x1: this.x, y1: this.y, x2: x, y2: y }),
-      );
+      this.r = distance({ x1: this.x, y1: this.y, x2: x, y2: y });
+      this.setAttribute("r", this.r);
     }
     save(this);
     return this;
   }
-  static fromHistory(circle) {
-    const newC = new SVGCircle(circle.x, circle.y, circle.r);
-    newC.id = circle.id;
-    Object.entries(circle.attributes).forEach(([field, value]) => {
-      newC.setAttribute(field, value);
-    });
-    return newC;
+  edit({ x, y, id }, save) {
+    if (id === "origin") {
+      this.x = x;
+      this.y = y;
+      this.setAttribute("x", x);
+      this.setAttribute("y", y);
+    } else if (id === "rx") {
+      this.r = distance({ x1: this.x, y1: this.y, x2: x, y2: y });
+      this.setAttribute("r", this.r);
+    }
+    save(this);
+  }
+  getEditPoints() {
+    return {
+      origin: { x: this.x, y: this.y },
+      rx: { x: this.x + this.r, y: this.y },
+    };
   }
 }
 class SVGLine {

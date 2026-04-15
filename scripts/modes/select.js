@@ -12,7 +12,7 @@ export class Selector {
         switch (event.target.nodeName) {
           case "circle":
             this.gs.setState({ currentPath: this.history[event.target.id] });
-            updateMode("CIRCLE");
+            updateMode("CIRCLE-EDIT");
             break;
           case "line":
             this.gs.setState({ currentPath: this.history[event.target.id] });

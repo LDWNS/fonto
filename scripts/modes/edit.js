@@ -33,8 +33,8 @@ export class Editor {
     this.updatedPoints = {};
     this.gs.setState({ currentPath: null });
   }
-  editLine(event) {
-    if (!this.currentPath || this.currentPath.type !== "line") {
+  edit(event, type) {
+    if (!this.currentPath || this.currentPath.type !== type) {
       return;
     }
     if (!this.isEditing) {
@@ -45,7 +45,8 @@ export class Editor {
         this.updatedPoints[key] = new SVGCircle(x, y, 5)
           .setAttribute("data-edit", "true")
           .setAttribute("data-point", key)
-          .setAttribute("fill", "#000")
+          .setAttribute("stroke-width", "2px")
+          .setAttribute("fill", "transparent")
           .update({ x, y }, () => {});
       }
       for (const key in this.updatedPoints) {
@@ -69,5 +70,11 @@ export class Editor {
     if (event.type === "mouseup" && this.movingPoint) {
       this.movingPoint = null;
     }
+  }
+  editCircle(event) {
+    edit(event, "circle");
+  }
+  editLine(event) {
+    edit(event, "line");
   }
 }
