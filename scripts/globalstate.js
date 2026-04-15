@@ -1,4 +1,6 @@
-import { SVGCircle, SVGLine } from "./classes.js";
+import { SVGCircle } from "./classes/circle.js";
+import { SVGLine } from "./classes/line.js";
+import { SVGPath } from "./classes/path.js";
 
 const loadHistory = (svg) => {
   const hydratedList = {};
@@ -13,6 +15,10 @@ const loadHistory = (svg) => {
         case "line":
           newItem = SVGLine.fromHistory(item);
           svg.appendChild(newItem.line);
+          break;
+        case "path":
+          newItem = SVGPath.fromHistory(item);
+          svg.appendChild(newItem.path);
           break;
         default:
           break;

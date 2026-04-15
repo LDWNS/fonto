@@ -20,6 +20,9 @@ const updateMode = (newMode) => {
   if (mode.includes("EDIT") && !newMode.includes("EDIT")) {
     editor.exitEditMode();
   }
+  if (mode === "PATH" && newMode !== "PATH") {
+    drawer.clearPreview();
+  }
   gs.setState({ mode: newMode });
   modeSpan.innerHTML = `${mode}`;
   modeSpan.style.color = modes[newMode].style.color;
@@ -34,6 +37,7 @@ const updateMode = (newMode) => {
 const modes = {
   CIRCLE: { do: (event) => drawer.drawCircle(event), style: { color: "#206" } },
   LINE: { do: (event) => drawer.drawLine(event), style: { color: "#920" } },
+  PATH: { do: (event) => drawer.drawPath(event), style: { color: "#699" } },
   "CIRCLE-EDIT": {
     do: (event) => editor.editCircle(event),
     style: { color: "#206" },
@@ -72,6 +76,9 @@ document.addEventListener("keydown", (event) => {
   switch (event.key) {
     case "c":
       newMode = "CIRCLE";
+      break;
+    case "p":
+      newMode = "PATH";
       break;
     case "l":
       newMode = "LINE";

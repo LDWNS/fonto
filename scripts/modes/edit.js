@@ -1,4 +1,4 @@
-import { SVGCircle } from "../classes.js";
+import { SVGCircle } from "../classes/circle.js";
 
 export class Editor {
   constructor(gs) {
