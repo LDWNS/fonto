@@ -27,10 +27,10 @@ export class Editor {
     }
     this.isEditing = false;
     this.originalPoints = {};
-    for (const key in this.updatedPoints) {
-      this.svg.removeChild(this.updatedPoints[key].circle);
-    }
     this.updatedPoints = {};
+    this.svg.querySelectorAll("[data-edit]").forEach((elem) => {
+      this.svg.removeChild(elem);
+    });
     this.gs.setState({ currentPath: null });
   }
   edit(event, type) {
@@ -41,13 +41,31 @@ export class Editor {
       this.isEditing = true;
       this.originalPoints = this.currentPath.getEditPoints();
       for (const key in this.originalPoints) {
-        const { x, y } = this.originalPoints[key];
-        this.updatedPoints[key] = new SVGCircle(x, y, 5)
+        const { x, y, x1, y1, x2, y2 } = this.originalPoints[key];
+        this.updatedPoints[key] = new SVGCircle(x, y, 5, key)
           .setAttribute("data-edit", "true")
           .setAttribute("data-point", key)
           .setAttribute("stroke-width", "2px")
           .setAttribute("fill", "transparent")
           .update({ x, y }, () => {});
+        if (x1 !== undefined && y1 !== undefined) {
+          let bpKey1 = key + "-bp-0";
+          this.updatedPoints[bpKey1] = new SVGCircle(x1, y1, 5, bpKey1)
+            .setAttribute("data-edit", "true")
+            .setAttribute("data-point", bpKey1)
+            .setAttribute("stroke-width", "2px")
+            .setAttribute("fill", "transparent")
+            .update({ x: x1, y: y1 }, () => {});
+        }
+        if (x2 !== undefined && y2 !== undefined) {
+          let bpKey2 = key + "-bp-1";
+          this.updatedPoints[bpKey2] = new SVGCircle(x2, y2, 5, bpKey2)
+            .setAttribute("data-edit", "true")
+            .setAttribute("data-point", bpKey2)
+            .setAttribute("stroke-width", "2px")
+            .setAttribute("fill", "transparent")
+            .update({ x: x2, y: y2 }, () => {});
+        }
       }
       for (const key in this.updatedPoints) {
         this.svg.appendChild(this.updatedPoints[key].circle);
@@ -73,9 +91,8 @@ export class Editor {
     if (event.type === "dblclick") {
       const key = event.target.getAttribute("data-point");
       const targetPoint = this.updatedPoints[key];
-      let newPoints = this.currentPath.editNode(
-        { id: event.target.getAttribute("data-point") },
-        (item) => this.gs.save(item),
+      let newPoints = this.currentPath.editNode({ id: key }, (item) =>
+        this.gs.save(item),
       );
       if (newPoints.length === 0) {
         let nKey0 = targetPoint.id + "-bp-" + 0;

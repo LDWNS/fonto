@@ -2,16 +2,19 @@ import { uid } from "../helper.js";
 import { SVGLine } from "./line.js";
 
 class SVGPathElement {
-  constructor(type, list) {
+  constructor(type, list, prevNode) {
     this.id = uid();
     this.type = type;
     this.list = list;
+    this.prevNode = prevNode;
   }
-  static fromString(str) {
+  // todo: figure out why prevNode is always the last dblclick'ed mf
+  static fromString(str, prevNode) {
     const arr = str?.split(" ") ?? [];
     return new SVGPathElement(
       arr[0],
       arr.slice(1).map((x) => parseFloat(x.replaceAll(/,/g, ""))),
+      prevNode,
     );
   }
   toString() {
@@ -30,7 +33,15 @@ class SVGPathElement {
       case "M":
         return { id: this.id, y: this.list[1], x: this.list[0] };
       case "C":
-        return { id: this.id, y: this.list[5], x: this.list[4] };
+        return {
+          id: this.id,
+          x1: this.list[0],
+          y1: this.list[1],
+          x2: this.list[2],
+          y2: this.list[3],
+          y: this.list[5],
+          x: this.list[4],
+        };
       default:
         break;
     }
@@ -42,12 +53,15 @@ class SVGPathElement {
         break;
       case "L":
         this.type = "C";
+        let { x: x1, y: y1 } = this.prevNode.getPoint();
         x = this.list[0];
         y = this.list[1];
-        this.list = [x + 15, y + 15, x - 15, y - 15, x, y];
+        let x2 = x + 15;
+        let y2 = y + 15;
+        this.list = [x1 + 15, y1 + 15, x2, y2, x, y];
         this.newPoints = [
-          { x: x + 15, y: y + 15 },
-          { x: x - 15, y: y - 15 },
+          { x: x1 + 15, y: y1 + 15 },
+          { x: x2, y: y2 },
         ];
         break;
       case "C":
@@ -83,7 +97,7 @@ export class SVGPath {
     this.type = "path";
     this.x = x;
     this.y = y;
-    this.moves = [new SVGPathElement("M", [x, y])];
+    this.moves = [new SVGPathElement("M", [x, y], undefined)];
     this.moveString = `M ${x} ${y}`;
     this.isDrawing = false;
     this.attributes = {};
@@ -100,9 +114,17 @@ export class SVGPath {
     Object.entries(path.attributes).forEach(([field, value]) => {
       newC.setAttribute(field, value);
     });
-    newC.moves = newC.moveString
-      .split(/ (?=[a-zA-Z])/)
-      .map((x) => SVGPathElement.fromString(x));
+    newC.moves = [];
+    const split = newC.moveString.split(/ (?=[a-zA-Z])/);
+    for (let i = 0; i < split.length; i++) {
+      newC.moves.push(
+        SVGPathElement.fromString(
+          split[i],
+          i > 0 ? newC.moves[i - 1] : undefined,
+        ),
+      );
+    }
+
     return newC;
   }
   setAttribute(field, value) {
@@ -127,7 +149,8 @@ export class SVGPath {
       );
       this.path.parentNode.appendChild(this.previewLine.line);
     } else {
-      const temp = new SVGPathElement("L", [x, y]);
+      const prev = this.moves[this.moves.length - 1];
+      const temp = new SVGPathElement("L", [x, y], prev);
       this.moves.push(temp);
       this.moveString += ` ${temp.toString()}`;
       this.setAttribute("d", this.moveString);

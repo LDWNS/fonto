@@ -2,8 +2,8 @@ import { uid, distance } from "../helper.js";
 
 // TODO: change circle to ellipse
 export class SVGCircle {
-  constructor(x, y, r) {
-    this.id = uid();
+  constructor(x, y, r, id = uid()) {
+    this.id = id;
     this.circle = document.createElementNS(
       "http://www.w3.org/2000/svg",
       "circle",
