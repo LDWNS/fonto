@@ -71,10 +71,30 @@ export class Editor {
       this.movingPoint = null;
     }
     if (event.type === "dblclick") {
-      this.currentPath.editNode(
+      const key = event.target.getAttribute("data-point");
+      const targetPoint = this.updatedPoints[key];
+      let newPoints = this.currentPath.editNode(
         { id: event.target.getAttribute("data-point") },
         (item) => this.gs.save(item),
       );
+      if (newPoints.length === 0) {
+        let nKey0 = targetPoint.id + "-bp-" + 0;
+        this.svg.removeChild(this.updatedPoints[nKey0].circle);
+        let nKey1 = targetPoint.id + "-bp-" + 1;
+        this.svg.removeChild(this.updatedPoints[nKey1].circle);
+        return;
+      }
+      for (let i = 0; i < newPoints.length; i++) {
+        let nKey = targetPoint.id + "-bp-" + i;
+        const { x, y } = newPoints[i];
+        this.updatedPoints[nKey] = new SVGCircle(x, y, 5)
+          .setAttribute("data-edit", "true")
+          .setAttribute("data-point", nKey)
+          .setAttribute("stroke-width", "2px")
+          .setAttribute("fill", "transparent")
+          .update({ x, y }, () => {});
+        this.svg.appendChild(this.updatedPoints[nKey].circle);
+      }
     }
   }
   editCircle(event) {
