@@ -13,6 +13,16 @@ export class SVGLine {
     this.setAttribute("stroke", "#333");
     this.setAttribute("id", this.id);
   }
+  static fromHistory(line) {
+    const newC = new SVGLine(line.x1, line.y1);
+    newC.id = line.id;
+    newC.x2 = line.x2;
+    newC.y2 = line.y2;
+    Object.entries(line.attributes ?? {}).forEach(([field, value]) => {
+      newC.setAttribute(field, value);
+    });
+    return newC;
+  }
   setCoords({ x1, y1, x2, y2 }) {
     this.x1 = x1;
     this.y1 = y1;
@@ -62,14 +72,7 @@ export class SVGLine {
       end: { x: this.x2, y: this.y2 },
     };
   }
-  static fromHistory(line) {
-    const newC = new SVGLine(line.x1, line.y1);
-    newC.id = line.id;
-    newC.x2 = line.x2;
-    newC.y2 = line.y2;
-    Object.entries(line.attributes ?? {}).forEach(([field, value]) => {
-      newC.setAttribute(field, value);
-    });
-    return newC;
+  handleKeyEvent(event) {
+    // No key events for line
   }
 }

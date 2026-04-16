@@ -69,4 +69,6 @@ export class SVGCircle {
       rx: { x: this.x + this.r, y: this.y },
     };
   }
+  handleKeyEvent(event) {
+  }
 }

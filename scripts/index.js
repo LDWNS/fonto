@@ -112,8 +112,9 @@ document.addEventListener("keydown", (event) => {
       gs.setState({ currentPath: null });
       newMode = "SELECT";
       break;
-    default:
-      return;
   }
   updateMode(newMode ?? mode);
+  if (currentPath) {
+    currentPath.handleKeyEvent(event, (item) => gs.save(item));
+  }
 });

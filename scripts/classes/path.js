@@ -11,11 +11,8 @@ class SVGPathElement {
   // todo: figure out why prevNode is always the last dblclick'ed mf
   static fromString(str, prevNode) {
     const arr = str?.split(" ") ?? [];
-    return new SVGPathElement(
-      arr[0],
-      arr.slice(1).map((x) => parseFloat(x.replaceAll(/,/g, ""))),
-      prevNode,
-    );
+    const moves = arr.slice(1).map((x) => parseFloat(x.replaceAll(/,/g, "")));
+    return new SVGPathElement(arr[0], moves, prevNode);
   }
   toString() {
     let output = `${this.type}`;
@@ -42,14 +39,13 @@ class SVGPathElement {
           y: this.list[5],
           x: this.list[4],
         };
-      default:
-        break;
     }
   }
   toggleType() {
     let x, y;
     switch (this.type) {
       case "M":
+      case "Z":
         break;
       case "L":
         this.type = "C";
@@ -92,6 +88,8 @@ class SVGPathElement {
       case "C":
         this.list[4] = x;
         this.list[5] = y;
+        break;
+      case "Z":
         break;
     }
   }
@@ -140,7 +138,17 @@ export class SVGPath {
     return this;
   }
   preview({ x: newX, y: newY }) {
-    const [x, y, rest] = this.moves[this.moves.length - 1].list;
+    const lastMove = this.moves[this.moves.length - 1];
+    let [x, y, rest] = lastMove.list;
+    if (lastMove.type === "Z") {
+      // if last type is Z, find the last M and use that as origin
+      for (let i = this.moves.length - 1; i >= 0; i--) {
+        if (this.moves[i].type === "M") {
+          x = this.moves[i].list[0];
+          y = this.moves[i].list[1];
+        }
+      }
+    }
     this.previewLine
       .setCoords({ x1: x, y1: y, x2: newX, y2: newY })
       .update({ x: newX, y: newY }, () => {});
@@ -195,7 +203,22 @@ export class SVGPath {
   }
   getEditPoints() {
     const output = {};
-    this.moves.forEach((el) => (output[el.id] = el.getPoint()));
+    this.moves.forEach((el) => {
+      if (el.type === "Z") {
+        return;
+      }
+      output[el.id] = el.getPoint();
+    });
     return output;
+  }
+  handleKeyEvent(event, save) {
+    if (event.key === "z") {
+      this.moves.push(
+        new SVGPathElement("Z", [], this.moves[this.moves.length - 1]),
+      );
+    }
+    this.moveString = this.moves.map((move) => move.toString()).join(" ");
+    this.setAttribute("d", this.moveString);
+    save(this);
   }
 }
