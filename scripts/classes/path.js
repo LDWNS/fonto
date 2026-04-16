@@ -74,6 +74,13 @@ class SVGPathElement {
     }
     return this;
   }
+  updateBP(x, y, index) {
+    if (this.type !== "C") {
+      return;
+    }
+    this.list[index * 2] = x;
+    this.list[index * 2 + 1] = y;
+  }
 
   setOrigin(x, y) {
     switch (this.type) {
@@ -161,10 +168,11 @@ export class SVGPath {
   }
   edit({ x, y, id }, save) {
     this.moves = this.moves.map((item) => {
-      if (id !== item.id) {
-        return item;
+      if (id === item.id) {
+        item.setOrigin(x, y);
+      } else if (id.includes(item.id)) {
+        item.updateBP(x, y, id.includes("bp-0") ? 0 : 1);
       }
-      item.setOrigin(x, y);
       return item;
     });
     this.moveString = this.moves.join(" ");
