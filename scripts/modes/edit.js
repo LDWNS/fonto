@@ -1,4 +1,5 @@
 import { SVGCircle } from "../classes/circle.js";
+import { EditPoint } from "../classes/editpoint.js";
 
 export class Editor {
   constructor(gs) {
@@ -40,32 +41,27 @@ export class Editor {
     if (!this.isEditing) {
       this.isEditing = true;
       this.originalPoints = this.currentPath.getEditPoints();
+      let prevEditPoint = {};
       for (const key in this.originalPoints) {
         const { x, y, x1, y1, x2, y2 } = this.originalPoints[key];
-        this.updatedPoints[key] = new SVGCircle(x, y, 5, key)
-          .setAttribute("data-edit", "true")
-          .setAttribute("data-point", key)
-          .setAttribute("stroke-width", "2px")
-          .setAttribute("fill", "transparent")
-          .update({ x, y }, () => {});
+        this.updatedPoints[key] = new EditPoint(x, y, key);
         if (x1 !== undefined && y1 !== undefined) {
           let bpKey1 = key + "-bp-0";
-          this.updatedPoints[bpKey1] = new SVGCircle(x1, y1, 5, bpKey1)
-            .setAttribute("data-edit", "true")
-            .setAttribute("data-point", bpKey1)
-            .setAttribute("stroke-width", "2px")
-            .setAttribute("fill", "transparent")
-            .update({ x: x1, y: y1 }, () => {});
+          this.updatedPoints[bpKey1] = new EditPoint(
+            x1,
+            y1,
+            bpKey1,
+          ).setAnchorPoint(prevEditPoint);
         }
         if (x2 !== undefined && y2 !== undefined) {
           let bpKey2 = key + "-bp-1";
-          this.updatedPoints[bpKey2] = new SVGCircle(x2, y2, 5, bpKey2)
-            .setAttribute("data-edit", "true")
-            .setAttribute("data-point", bpKey2)
-            .setAttribute("stroke-width", "2px")
-            .setAttribute("fill", "transparent")
-            .update({ x: x2, y: y2 }, () => {});
+          this.updatedPoints[bpKey2] = new EditPoint(
+            x2,
+            y2,
+            bpKey2,
+          ).setAnchorPoint(this.updatedPoints[key]);
         }
+        prevEditPoint = this.updatedPoints[key];
       }
       for (const key in this.updatedPoints) {
         this.svg.appendChild(this.updatedPoints[key].circle);
@@ -79,7 +75,10 @@ export class Editor {
     }
     if (event.type === "mousemove" && this.isEditing && this.movingPoint) {
       const { x, y } = this.#pointerToSvgCoords(event);
+      const dx = x - this.movingPoint.x;
+      const dy = y - this.movingPoint.y;
       this.movingPoint.setOrigin({ x, y }).update({ x, y }, () => {});
+      this.movingPoint.updateAnchoredPoints(dx, dy);
       this.currentPath.edit(
         { x, y, id: this.movingPoint.attributes["data-point"] },
         (item) => this.gs.save(item),
@@ -104,12 +103,9 @@ export class Editor {
       for (let i = 0; i < newPoints.length; i++) {
         let nKey = targetPoint.id + "-bp-" + i;
         const { x, y } = newPoints[i];
-        this.updatedPoints[nKey] = new SVGCircle(x, y, 5)
-          .setAttribute("data-edit", "true")
-          .setAttribute("data-point", nKey)
-          .setAttribute("stroke-width", "2px")
-          .setAttribute("fill", "transparent")
-          .update({ x, y }, () => {});
+        this.updatedPoints[nKey] = new EditPoint(x, y, nKey).setAnchorPoint(
+          targetPoint,
+        );
         this.svg.appendChild(this.updatedPoints[nKey].circle);
       }
     }
