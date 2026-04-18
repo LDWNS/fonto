@@ -26,6 +26,9 @@ class SVGPathElement {
   }
   getPoint() {
     switch (this.type) {
+      case "Z":
+        console.error("getPoint was called on Z");
+        break;
       case "L":
       case "M":
         return { id: this.id, y: this.list[1], x: this.list[0] };
@@ -41,7 +44,7 @@ class SVGPathElement {
         };
     }
   }
-  toggleType() {
+  toggleType(info) {
     let x, y;
     switch (this.type) {
       case "M":
@@ -49,7 +52,8 @@ class SVGPathElement {
         break;
       case "L":
         this.type = "C";
-        let { x: x1, y: y1 } = this.prevNode.getPoint();
+        let { x: x1, y: y1 } =
+          this.prevNode.type === "Z" ? info : this.prevNode.getPoint();
         x = this.list[0];
         y = this.list[1];
         let x2 = x + 15;
@@ -137,17 +141,22 @@ export class SVGPath {
     this.attributes[field] = value;
     return this;
   }
+  #getLastM(zIndex = this.moves.length) {
+    let x, y;
+    for (let i = zIndex - 1; i >= 0; i--) {
+      if (this.moves[i].type === "M") {
+        x = this.moves[i].list[0];
+        y = this.moves[i].list[1];
+      }
+    }
+    return { x, y };
+  }
   preview({ x: newX, y: newY }) {
     const lastMove = this.moves[this.moves.length - 1];
     let [x, y, rest] = lastMove.list;
     if (lastMove.type === "Z") {
       // if last type is Z, find the last M and use that as origin
-      for (let i = this.moves.length - 1; i >= 0; i--) {
-        if (this.moves[i].type === "M") {
-          x = this.moves[i].list[0];
-          y = this.moves[i].list[1];
-        }
-      }
+      ({ x, y } = this.#getLastM());
     }
     this.previewLine
       .setCoords({ x1: x, y1: y, x2: newX, y2: newY })
@@ -189,9 +198,13 @@ export class SVGPath {
   }
   editNode({ id }, save) {
     let newPoints = [];
-    this.moves = this.moves.map((item) => {
+    this.moves = this.moves.map((item, index) => {
       if (id === item.id) {
-        item.toggleType();
+        let info;
+        if (item.prevNode.type === "Z") {
+          info = this.#getLastM(index);
+        }
+        item.toggleType(info);
         newPoints = item.newPoints;
       }
       return item;
