@@ -55,8 +55,8 @@ export class SVGCircle {
     if (id === "origin") {
       this.x = x;
       this.y = y;
-      this.setAttribute("x", x);
-      this.setAttribute("y", y);
+      this.setAttribute("cx", x);
+      this.setAttribute("cy", y);
     } else if (id === "rx") {
       this.r = distance({ x1: this.x, y1: this.y, x2: x, y2: y });
       this.setAttribute("r", this.r);
