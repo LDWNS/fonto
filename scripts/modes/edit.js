@@ -9,7 +9,7 @@ export class Editor {
     this.top = gs.state.window.top;
     this.left = gs.state.window.left;
     this.isEditing = false;
-    this.originalPoints = {};
+    this.currentPathPoints = {};
     this.updatedPoints = {};
     this.movingPoint = null;
     gs.subscribe(() => {
@@ -27,7 +27,7 @@ export class Editor {
       return;
     }
     this.isEditing = false;
-    this.originalPoints = {};
+    this.currentPathPoints = {};
     this.updatedPoints = {};
     this.svg.querySelectorAll("[data-edit]").forEach((elem) => {
       this.svg.removeChild(elem);
@@ -40,31 +40,22 @@ export class Editor {
     }
     if (!this.isEditing) {
       this.isEditing = true;
-      this.originalPoints = this.currentPath.getEditPoints();
+      this.currentPathPoints = this.currentPath.getEditPoints();
       let prevEditPoint = {};
-      for (const key in this.originalPoints) {
-        const { x, y, x1, y1, x2, y2 } = this.originalPoints[key];
-        this.updatedPoints[key] = new EditPoint(x, y, key);
-        if (x1 !== undefined && y1 !== undefined) {
-          let bpKey1 = key + "-bp-0";
-          this.updatedPoints[bpKey1] = new EditPoint(
-            x1,
-            y1,
-            bpKey1,
-          ).setAnchorPoint(prevEditPoint);
-        }
-        if (x2 !== undefined && y2 !== undefined) {
-          let bpKey2 = key + "-bp-1";
-          this.updatedPoints[bpKey2] = new EditPoint(
-            x2,
-            y2,
-            bpKey2,
-          ).setAnchorPoint(this.updatedPoints[key]);
-        }
-        prevEditPoint = this.updatedPoints[key];
-      }
-      for (const key in this.updatedPoints) {
-        this.svg.appendChild(this.updatedPoints[key].circle);
+      for (const key in this.currentPathPoints) {
+        const currentPathPoint = this.currentPathPoints[key];
+        const editPoints = EditPoint.create(
+          key,
+          currentPathPoint,
+          prevEditPoint,
+        );
+
+        editPoints.forEach((ePoint) => {
+          this.updatedPoints[ePoint.id] = ePoint;
+          this.svg.appendChild(ePoint.circle);
+        });
+
+        prevEditPoint = editPoints[0];
       }
       return;
     }
@@ -89,23 +80,26 @@ export class Editor {
     }
     if (event.type === "dblclick") {
       const key = event.target.getAttribute("data-point");
+      if (!key || key.includes("-a-")) {
+        return;
+      }
       const targetPoint = this.updatedPoints[key];
       let newPoints = this.currentPath.editNode({ id: key }, (item) =>
         this.gs.save(item),
       );
       if (newPoints.length === 0) {
-        let nKey0 = targetPoint.id + "-bp-" + 0;
+        let nKey0 = key + "-a-" + 0;
         this.svg.removeChild(this.updatedPoints[nKey0].circle);
-        let nKey1 = targetPoint.id + "-bp-" + 1;
+        let nKey1 = key + "-a-" + 1;
         this.svg.removeChild(this.updatedPoints[nKey1].circle);
         return;
       }
       for (let i = 0; i < newPoints.length; i++) {
-        let nKey = targetPoint.id + "-bp-" + i;
+        let nKey = targetPoint.id + "-a-" + i;
         const { x, y } = newPoints[i];
-        this.updatedPoints[nKey] = new EditPoint(x, y, nKey).setAnchorPoint(
-          targetPoint,
-        );
+        this.updatedPoints[nKey] = new EditPoint(x, y, nKey)
+          .setAnchorPoint(targetPoint)
+          .setAttribute("fill", "#333");
         this.svg.appendChild(this.updatedPoints[nKey].circle);
       }
     }

@@ -56,12 +56,10 @@ class SVGPathElement {
           this.prevNode.type === "Z" ? info : this.prevNode.getPoint();
         x = this.list[0];
         y = this.list[1];
-        let x2 = x + 15;
-        let y2 = y + 15;
-        this.list = [x1 + 15, y1 + 15, x2, y2, x, y];
+        this.list = [x1 + 15, y1 + 15, x + 15, y + 15, x, y];
         this.newPoints = [
           { x: x1 + 15, y: y1 + 15 },
-          { x: x2, y: y2 },
+          { x: x + 15, y: y + 15 },
         ];
         break;
       case "C":
@@ -188,7 +186,7 @@ export class SVGPath {
       if (id === item.id) {
         item.setOrigin(x, y);
       } else if (id.includes(item.id)) {
-        item.updateBP(x, y, id.includes("bp-0") ? 0 : 1);
+        item.updateBP(x, y, id.includes("a-0") ? 0 : 1);
       }
       return item;
     });
