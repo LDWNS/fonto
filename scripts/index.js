@@ -1,6 +1,6 @@
 import { Store } from "./globalstate.js";
 import { Drawer } from "./modes/draw.js";
-import { Selector } from "./modes/select.js";
+import { Tools } from "./modes/select.js";
 import { Editor } from "./modes/edit.js";
 
 const svg = document.querySelector("svg");
@@ -9,7 +9,7 @@ const modeSpan = document.querySelector("#mode");
 const { left, top } = svg.getBoundingClientRect();
 const gs = new Store({ svg: svg, window: { left, top }, mode: "SELECT" });
 const drawer = new Drawer(gs);
-const selector = new Selector(gs);
+const tools = new Tools(gs);
 const editor = new Editor(gs);
 
 let history = gs.state.history;
@@ -32,6 +32,8 @@ const updateMode = (newMode) => {
   } else {
     svg.classList = [];
   }
+
+  modes[mode].do({ type: "mode-change" });
 };
 
 const modes = {
@@ -52,7 +54,7 @@ const modes = {
   },
   SELECT: {
     do: (event) =>
-      selector.select(event, (newMode) => {
+      tools.select(event, (newMode) => {
         updateMode(newMode);
         if (newMode === "LINE-EDIT") {
           editor.editLine(event);
@@ -62,6 +64,8 @@ const modes = {
       }),
     style: { color: "#290" },
   },
+  // todo: implement move mode
+  MOVE: { do: (event) => tools.move(event), style: { color: "#029" } },
 };
 updateMode("SELECT");
 gs.subscribe(() => {

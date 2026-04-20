@@ -1,7 +1,7 @@
 import { uid } from "../helper.js";
 export class SVGLine {
-  constructor(x, y) {
-    this.id = uid();
+  constructor(x, y, id = uid()) {
+    this.id = id;
     this.line = document.createElementNS("http://www.w3.org/2000/svg", "line");
     this.type = "line";
     this.x1 = x;

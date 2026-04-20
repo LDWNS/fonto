@@ -8,7 +8,6 @@ class SVGPathElement {
     this.list = list;
     this.prevNode = prevNode;
   }
-  // todo: figure out why prevNode is always the last dblclick'ed mf
   static fromString(str, prevNode) {
     const arr = str?.split(" ") ?? [];
     const moves = arr.slice(1).map((x) => parseFloat(x.replaceAll(/,/g, "")));
@@ -177,10 +176,10 @@ export class SVGPath {
       this.moveString += ` ${temp.toString()}`;
       this.setAttribute("d", this.moveString);
     }
-    // TODO: implement path drawing logic
     save(this);
     return this;
   }
+  // todo: get new locations for path from ./editpoint.js
   edit({ x, y, id }, save) {
     this.moves = this.moves.map((item) => {
       if (id === item.id) {

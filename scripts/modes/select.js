@@ -1,4 +1,4 @@
-export class Selector {
+export class Tools {
   constructor(gs) {
     this.gs = gs;
     this.history = gs.state.history;
