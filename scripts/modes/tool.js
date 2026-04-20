@@ -30,4 +30,30 @@ export class Tools {
         break;
     }
   }
+  #pointerToSvgCoords({ clientX, clientY }) {
+    return { x: clientX - this.left, y: clientY - this.top };
+  }
+  move(event) {
+    let target = this.history[event.target?.id];
+    if (!target) {
+      return;
+    }
+    const newCoords = this.#pointerToSvgCoords(event);
+    switch (event.type) {
+      case "mousedown":
+        this.gs.setState({ currentPath: target });
+        break;
+      case "mousemove":
+        if (this.gs.currentPath) {
+          // todo: finish move
+          target.currentPath.move(newCoords, () => {});
+        }
+        break;
+      case "mouseup":
+        if (this.gs.currentPath) {
+          this.gs.setState({ currentPath: null });
+        }
+        break;
+    }
+  }
 }
