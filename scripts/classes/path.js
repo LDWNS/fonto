@@ -2,16 +2,22 @@ import { uid } from "../helper.js";
 import { SVGLine } from "./line.js";
 
 class SVGPathElement {
-  constructor(type, list, prevNode) {
+  constructor(type, list) {
     this.id = uid();
     this.type = type;
     this.list = list;
-    this.prevNode = prevNode;
   }
   static fromString(str, prevNode) {
     const arr = str?.split(" ") ?? [];
     const moves = arr.slice(1).map((x) => parseFloat(x.replaceAll(/,/g, "")));
-    return new SVGPathElement(arr[0], moves, prevNode);
+    return new SVGPathElement(arr[0], moves).linkPrev(prevNode);
+  }
+  linkPrev(prevNode) {
+    if (prevNode) {
+      this.prevNode = prevNode;
+      prevNode.nextNode = this.id;
+    }
+    return this;
   }
   toString() {
     let output = `${this.type}`;
@@ -78,6 +84,13 @@ class SVGPathElement {
     this.list[index * 2] = x;
     this.list[index * 2 + 1] = y;
   }
+  moveBP(dx, dy, index) {
+    if (this.type !== "C") {
+      return;
+    }
+    this.list[index * 2] += dx;
+    this.list[index * 2 + 1] += dy;
+  }
 
   setOrigin(x, y) {
     switch (this.type) {
@@ -103,7 +116,7 @@ export class SVGPath {
     this.type = "path";
     this.x = x;
     this.y = y;
-    this.moves = [new SVGPathElement("M", [x, y], undefined)];
+    this.moves = [new SVGPathElement("M", [x, y])];
     this.moveString = `M ${x} ${y}`;
     this.isDrawing = false;
     this.attributes = {};
@@ -171,7 +184,7 @@ export class SVGPath {
       this.path.parentNode.appendChild(this.previewLine.line);
     } else {
       const prev = this.moves[this.moves.length - 1];
-      const temp = new SVGPathElement("L", [x, y], prev);
+      const temp = new SVGPathElement("L", [x, y]).linkPrev(prev);
       this.moves.push(temp);
       this.moveString += ` ${temp.toString()}`;
       this.setAttribute("d", this.moveString);
@@ -180,12 +193,21 @@ export class SVGPath {
     return this;
   }
   // todo: get new locations for path from ./editpoint.js
-  edit({ x, y, id }, save) {
+  edit({ x, y, dx, dy, id }, save) {
     this.moves = this.moves.map((item) => {
       if (id === item.id) {
+        if (item.type === "C") {
+          // update the associated bend point
+          item.moveBP(dx, dy, 1);
+        }
         item.setOrigin(x, y);
-      } else if (id.includes(item.id)) {
-        item.updateBP(x, y, id.includes("a-0") ? 0 : 1);
+      } else if (id.substring(0, id.length - 1) === item.id + "-a-") {
+        item.updateBP(x, y, parseInt(id.charAt(id.length - 1)));
+      } else if (id === item.prevNode?.id) {
+        if (item.type === "C") {
+          // update the associated bend point
+          item.moveBP(dx, dy, 0);
+        }
       }
       return item;
     });
@@ -224,7 +246,7 @@ export class SVGPath {
   handleKeyEvent(event, save) {
     if (event.key === "z") {
       this.moves.push(
-        new SVGPathElement("Z", [], this.moves[this.moves.length - 1]),
+        new SVGPathElement("Z", []).linkPrev(this.moves[this.moves.length - 1]),
       );
     }
     this.moveString = this.moves.map((move) => move.toString()).join(" ");

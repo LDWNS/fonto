@@ -1,4 +1,3 @@
-import { SVGCircle } from "../classes/circle.js";
 import { EditPoint } from "../classes/editpoint.js";
 
 export class Editor {
@@ -53,7 +52,7 @@ export class Editor {
       this.movingPoint.setOrigin({ x, y }).update({ x, y }, () => {});
       this.movingPoint.updateAnchoredPoints(dx, dy);
       this.currentPath.edit(
-        { x, y, id: this.movingPoint.attributes["data-point"] },
+        { x, y, dx, dy, id: this.movingPoint.attributes["data-point"] },
         (item) => this.gs.save(item),
       );
       return;
@@ -97,23 +96,21 @@ export class Editor {
       this.gs.save(item),
     );
     if (newPoints.length === 0) {
-      let nKey0 = key + "-a-" + 0;
-      this.svg.removeChild(this.updatedPoints[nKey0].circle);
-      let nKey1 = key + "-a-" + 1;
-      this.svg.removeChild(this.updatedPoints[nKey1].circle);
-      this.svg.querySelectorAll(`[data-point*="${key}-a-"]`).forEach((elem) => {
-        this.svg.removeChild(elem);
-      });
+      for (let i = 0; i < 2; i++) {
+        const a = this.updatedPoints[key + "-a-" + i];
+        this.svg.removeChild(a.circle);
+        if (a.anchorLine) {
+          this.svg.removeChild(a.anchorLine.line);
+        }
+      }
       return;
     }
     for (let i = 0; i < newPoints.length; i++) {
       let nKey = targetPoint.id + "-a-" + i;
       const { x, y } = newPoints[i];
-      // todo: this can start if edit points have forward and backward references
-      // const anchorPoint = i === 0 ? targetPoint.prevEditPoint : targetPoint;
+      const anchorPoint = i === 0 ? targetPoint.prevEP : targetPoint;
       this.updatedPoints[nKey] = new EditPoint(x, y, nKey, 3)
-        // .setAnchorPoint(anchorPoint)
-        .setAttribute("fill", "#333")
+        .setAnchorPoint(anchorPoint)
         .createAnchorLine();
       this.svg.appendChild(this.updatedPoints[nKey].circle);
       this.svg.appendChild(this.updatedPoints[nKey].anchorLine.line);

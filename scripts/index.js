@@ -1,6 +1,6 @@
 import { Store } from "./globalstate.js";
 import { Drawer } from "./modes/draw.js";
-import { Tools } from "./modes/select.js";
+import { Tools } from "./modes/tool.js";
 import { Editor } from "./modes/edit.js";
 
 const svg = document.querySelector("svg");
@@ -64,7 +64,6 @@ const modes = {
       }),
     style: { color: "#290" },
   },
-  // todo: implement move mode
   MOVE: { do: (event) => tools.move(event), style: { color: "#029" } },
 };
 updateMode("SELECT");
@@ -91,6 +90,9 @@ document.addEventListener("keydown", (event) => {
       break;
     case "l":
       newMode = "LINE";
+      break;
+    case "m":
+      newMode = "MOVE";
       break;
     case "s":
       newMode = "SELECT";
