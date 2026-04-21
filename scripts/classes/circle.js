@@ -52,22 +52,26 @@ export class SVGCircle {
     return this;
   }
   edit({ x, y, id }, save) {
-    if (id === "origin") {
+    if (id === this.id) {
       this.x = x;
       this.y = y;
       this.setAttribute("cx", x);
       this.setAttribute("cy", y);
-    } else if (id === "rx") {
+    } else if (id === this.id + "-a-1") {
       this.r = distance({ x1: this.x, y1: this.y, x2: x, y2: y });
       this.setAttribute("r", this.r);
     }
     save(this);
   }
   getEditPoints() {
-    return {
-      origin: { x: this.x, y: this.y },
-      rx: { x: this.x + this.r, y: this.y },
+    const output = {};
+    output[this.id] = {
+      x: this.x,
+      y: this.y,
+      x2: this.x + this.r,
+      y2: this.y,
     };
+    return output;
   }
   handleKeyEvent(event) {}
 }

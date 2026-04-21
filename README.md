@@ -11,6 +11,10 @@
   - [x] edit paths
   - [x] enable Cubic Bezier curves
   - [ ] extend paths once drawn
+    - requires pointer to svg coords helper
+    - requires mode redesign
+    - requires path draw
+    - requires EditPoint redesign
   - [ ] add edit point to existing path
   - [ ] add arcs for "rounding corners"
 - [ ] make "canvas" editable
@@ -21,7 +25,7 @@
   - [ ] set text in font as background
   - [ ] convert with opentype.js
   - [ ] create letter by letter approach
-- [ ] 
+- [ ]
 
 ## Bugs
 

@@ -81,8 +81,7 @@ export class EditPoint extends SVGCircle {
   }
 
   #anchorPointUpdateStrategy(anchoredPoint, dx, dy) {
-    anchoredPoint
-      .update({ x: anchoredPoint.x + dx, y: anchoredPoint.y + dy });
+    anchoredPoint.update({ x: anchoredPoint.x + dx, y: anchoredPoint.y + dy });
   }
 
   createAnchorLine() {
