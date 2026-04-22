@@ -1,113 +1,4 @@
 import { uid } from "../helper.js";
-import { SVGLine } from "./line.js";
-
-class SVGPathElement {
-  constructor(type, list) {
-    this.id = uid();
-    this.type = type;
-    this.list = list;
-  }
-  static fromString(str, prevNode) {
-    const arr = str?.split(" ") ?? [];
-    const moves = arr.slice(1).map((x) => parseFloat(x.replaceAll(/,/g, "")));
-    return new SVGPathElement(arr[0], moves).linkPrev(prevNode);
-  }
-  linkPrev(prevNode) {
-    if (prevNode) {
-      this.prevNode = prevNode;
-      prevNode.nextNode = this.id;
-    }
-    return this;
-  }
-  toString() {
-    let output = `${this.type}`;
-    const needsCommas = this.list.length > 2;
-    for (let i = 0; i < this.list.length / 2; i++) {
-      const a = i * 2;
-      const b = a + 1;
-      output += ` ${this.list[a]} ${this.list[b]}${needsCommas && b + 1 < this.list.length ? "," : ""}`;
-    }
-    return output;
-  }
-  getPoint() {
-    switch (this.type) {
-      case "Z":
-        console.error("getPoint was called on Z");
-        break;
-      case "L":
-      case "M":
-        return { id: this.id, y: this.list[1], x: this.list[0] };
-      case "C":
-        return {
-          id: this.id,
-          x1: this.list[0],
-          y1: this.list[1],
-          x2: this.list[2],
-          y2: this.list[3],
-          y: this.list[5],
-          x: this.list[4],
-        };
-    }
-  }
-  toggleType(info) {
-    let x, y;
-    switch (this.type) {
-      case "M":
-      case "Z":
-        break;
-      case "L":
-        this.type = "C";
-        let { x: x1, y: y1 } =
-          this.prevNode.type === "Z" ? info : this.prevNode.getPoint();
-        x = this.list[0];
-        y = this.list[1];
-        this.list = [x1 + 15, y1 + 15, x + 15, y + 15, x, y];
-        this.newPoints = [
-          { x: x1 + 15, y: y1 + 15 },
-          { x: x + 15, y: y + 15 },
-        ];
-        break;
-      case "C":
-        this.type = "L";
-        x = this.list[4];
-        y = this.list[5];
-        this.list = [x, y];
-        this.newPoints = [];
-        break;
-    }
-    return this;
-  }
-  updateBP(x, y, index) {
-    if (this.type !== "C") {
-      return;
-    }
-    this.list[index * 2] = x;
-    this.list[index * 2 + 1] = y;
-  }
-  moveBP(dx, dy, index) {
-    if (this.type !== "C") {
-      return;
-    }
-    this.list[index * 2] += dx;
-    this.list[index * 2 + 1] += dy;
-  }
-
-  setOrigin(x, y) {
-    switch (this.type) {
-      case "M":
-      case "L":
-        this.list[0] = x;
-        this.list[1] = y;
-        break;
-      case "C":
-        this.list[4] = x;
-        this.list[5] = y;
-        break;
-      case "Z":
-        break;
-    }
-  }
-}
 
 export class SVGPath {
   constructor(x, y) {
@@ -125,6 +16,11 @@ export class SVGPath {
     this.setAttribute("fill", "none");
     this.setAttribute("id", this.id);
   }
+  static create(x, y) {
+    const newP = new SVGPath(x, y);
+    newP.setAttribute("d", this.moveString);
+    return newP;
+  }
   static fromHistory(path) {
     const newC = new SVGPath(path.x, path.y);
     newC.id = path.id;
@@ -139,8 +35,8 @@ export class SVGPath {
       newC.moves.push(
         SVGPathElement.fromString(
           split[i],
-          i > 0 ? newC.moves[i - 1] : undefined,
-        ),
+          i > 0 ? newC.moves[i - 1] : undefined
+        )
       );
     }
 
@@ -161,39 +57,16 @@ export class SVGPath {
     }
     return { x, y };
   }
-  preview({ x: newX, y: newY }) {
-    const lastMove = this.moves[this.moves.length - 1];
-    let [x, y, rest] = lastMove.list;
-    if (lastMove.type === "Z") {
-      // if last type is Z, find the last M and use that as origin
-      ({ x, y } = this.#getLastM());
-    }
-    this.previewLine
-      .setCoords({ x1: x, y1: y, x2: newX, y2: newY })
-      .update({ x: newX, y: newY }, () => {});
-  }
-  update({ x, y }, save) {
-    if (!this.isDrawing) {
-      this.isDrawing = true;
-      this.setAttribute("x", this.x);
-      this.setAttribute("y", this.y);
-      this.previewLine = new SVGLine(this.x, this.y).setAttribute(
-        "id",
-        "path-preview",
-      );
-      this.path.parentNode.appendChild(this.previewLine.line);
-    } else {
-      const prev = this.moves[this.moves.length - 1];
-      const temp = new SVGPathElement("L", [x, y]).linkPrev(prev);
-      this.moves.push(temp);
-      this.moveString += ` ${temp.toString()}`;
-      this.setAttribute("d", this.moveString);
-    }
-    save(this);
-    return this;
+  addPoint({ x, y }) {
+    const prev = this.moves[this.moves.length - 1];
+    const pe = new SVGPathElement("L", [x, y]).linkPrev(prev);
+    this.moves.push(pe);
+    this.moveString += ` ${pe.toString()}`;
+    this.setAttribute("d", this.moveString);
+    return pe;
   }
   // todo: get new locations for path from ./editpoint.js
-  edit({ x, y, dx, dy, id }, save) {
+  edit({ x, y, dx, dy, id }) {
     this.moves = this.moves.map((item) => {
       if (id === item.id) {
         if (item.type === "C") {
@@ -213,9 +86,8 @@ export class SVGPath {
     });
     this.moveString = this.moves.join(" ");
     this.setAttribute("d", this.moveString);
-    save(this);
   }
-  editNode({ id }, save) {
+  editNode({ id }) {
     let newPoints = [];
     this.moves = this.moves.map((item, index) => {
       if (id === item.id) {
@@ -230,7 +102,6 @@ export class SVGPath {
     });
     this.moveString = this.moves.map((move) => move.toString()).join(" ");
     this.setAttribute("d", this.moveString);
-    save(this);
     return newPoints;
   }
   getEditPoints() {
@@ -243,14 +114,13 @@ export class SVGPath {
     });
     return output;
   }
-  handleKeyEvent(event, save) {
+  handleKeyEvent(event) {
     if (event.key === "z") {
       this.moves.push(
-        new SVGPathElement("Z", []).linkPrev(this.moves[this.moves.length - 1]),
+        new SVGPathElement("Z", []).linkPrev(this.moves[this.moves.length - 1])
       );
     }
     this.moveString = this.moves.map((move) => move.toString()).join(" ");
     this.setAttribute("d", this.moveString);
-    save(this);
   }
 }

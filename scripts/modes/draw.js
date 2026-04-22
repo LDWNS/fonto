@@ -1,4 +1,3 @@
-import { SVGPath } from "../classes/path.js";
 import { SVGCircle } from "../classes/circle.js";
 import { SVGLine } from "../classes/line.js";
 
@@ -48,30 +47,6 @@ export class Drawer {
       this.gs.setState({ currentPath: temp });
       this.svg.appendChild(temp.line);
     });
-  };
-  drawFreeHand = (event) => {
-    this.#draw(event, (x, y) => {
-      const temp = new SVGPath(x, y);
-      this.gs.setState({ currentPath: temp });
-      this.svg.appendChild(temp.path);
-    });
-  };
-  drawPath = (event) => {
-    let click = event.type === "click";
-    if (!click && !this.currentPath) {
-      return;
-    }
-    const { x, y } = this.#clickToCanvasCoords(event);
-    if (click) {
-      if (!this.currentPath) {
-        const temp = new SVGPath(x, y);
-        this.gs.setState({ currentPath: temp });
-        this.svg.appendChild(temp.path);
-      }
-      this.currentPath.update({ x, y }, (item) => this.gs.save(item));
-      return;
-    }
-    this.currentPath.preview({ x, y });
   };
   clearPreview() {
     const preview = document.getElementById("path-preview");

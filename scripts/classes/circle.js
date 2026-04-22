@@ -6,7 +6,7 @@ export class SVGCircle {
     this.id = id;
     this.circle = document.createElementNS(
       "http://www.w3.org/2000/svg",
-      "circle",
+      "circle"
     );
     this.type = "circle";
     this.x = x;
@@ -30,6 +30,11 @@ export class SVGCircle {
   setAttribute(field, value) {
     this.circle.setAttribute(field, value);
     this.attributes[field] = value;
+    return this;
+  }
+  removeAttribute(field) {
+    this.circle.removeAttribute(field);
+    delete this.attributes[field];
     return this;
   }
   setOrigin({ x, y }) {

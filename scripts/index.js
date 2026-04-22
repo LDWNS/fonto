@@ -2,6 +2,7 @@ import { Store } from "./globalstate.js";
 import { Drawer } from "./modes/draw.js";
 import { Tools } from "./modes/tool.js";
 import { Editor } from "./modes/edit.js";
+import { PathEditor } from "./modes/path-edit.js";
 
 const svg = document.querySelector("svg");
 const modeSpan = document.querySelector("#mode");
@@ -11,6 +12,7 @@ const gs = new Store({ svg: svg, window: { left, top }, mode: "SELECT" });
 const drawer = new Drawer(gs);
 const tools = new Tools(gs);
 const editor = new Editor(gs);
+const pathEditor = new PathEditor(gs);
 
 let history = gs.state.history;
 let currentPath = gs.state.currentPath;
@@ -20,10 +22,10 @@ const updateMode = (newMode) => {
   if (mode.includes("EDIT") && !newMode.includes("EDIT")) {
     editor.exitEditMode();
   }
-  if (mode === "PATH" && newMode !== "PATH") {
+  if (mode === "PATH-DRAW" && newMode !== "PATH-DRAW") {
     drawer.clearPreview();
   }
-  gs.setState({ mode: newMode });
+  gs.setState({ mode: newMode, modeId: modes[newMode].id });
   modeSpan.innerHTML = `${mode}`;
   modeSpan.style.color = modes[newMode].style.color;
   modeSpan.style.fontWeight = "bold";
@@ -37,22 +39,38 @@ const updateMode = (newMode) => {
 };
 
 const modes = {
-  CIRCLE: { do: (event) => drawer.drawCircle(event), style: { color: "#206" } },
+  CIRCLE: {
+    id: 10,
+    do: (event) => drawer.drawCircle(event),
+    style: { color: "#206" },
+  },
   "CIRCLE-EDIT": {
+    id: 11,
     do: (event) => editor.editCircle(event),
     style: { color: "#206" },
   },
-  LINE: { do: (event) => drawer.drawLine(event), style: { color: "#920" } },
+  LINE: {
+    id: 5,
+    do: (event) => drawer.drawLine(event),
+    style: { color: "#920" },
+  },
   "LINE-EDIT": {
+    id: 6,
     do: (event) => editor.editLine(event),
     style: { color: "#920" },
   },
-  PATH: { do: (event) => drawer.drawPath(event), style: { color: "#699" } },
+  "PATH-DRAW": {
+    id: 2,
+    do: (event) => pathEditor.edit(event),
+    style: { color: "#699" },
+  },
   "PATH-EDIT": {
-    do: (event) => editor.editPath(event),
+    id: 1,
+    do: (event) => pathEditor.edit(event),
     style: { color: "#920" },
   },
   SELECT: {
+    id: 0,
     do: (event) =>
       tools.select(event, (newMode) => {
         updateMode(newMode);
@@ -86,7 +104,7 @@ document.addEventListener("keydown", (event) => {
       newMode = "CIRCLE";
       break;
     case "p":
-      newMode = "PATH";
+      newMode = "PATH-DRAW";
       break;
     case "l":
       newMode = "LINE";
@@ -97,6 +115,10 @@ document.addEventListener("keydown", (event) => {
     case "s":
       newMode = "SELECT";
     case "Escape":
+      if (mode.includes("PATH")) {
+        modes[mode].do(event);
+        break;
+      }
       if (mode.includes("-EDIT")) {
         newMode = "SELECT";
       }

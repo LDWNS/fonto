@@ -1,4 +1,5 @@
 import { EditPoint } from "../classes/editpoint.js";
+import { pointerToSvgCoords } from "../helper.js";
 
 export class Editor {
   constructor(gs) {
@@ -17,9 +18,6 @@ export class Editor {
       this.top = gs.state.window.top;
       this.left = gs.state.window.left;
     });
-  }
-  #pointerToSvgCoords({ clientX, clientY }) {
-    return { x: clientX - this.left, y: clientY - this.top };
   }
   exitEditMode() {
     if (!this.isEditing) {
@@ -46,7 +44,7 @@ export class Editor {
       return;
     }
     if (event.type === "mousemove" && this.isEditing && this.movingPoint) {
-      const { x, y } = this.#pointerToSvgCoords(event);
+      const { x, y } = pointerToSvgCoords(event);
       const dx = x - this.movingPoint.x;
       const dy = y - this.movingPoint.y;
       this.movingPoint.setOrigin({ x, y }).update({ x, y }, () => {});
@@ -62,7 +60,6 @@ export class Editor {
       return;
     }
     if (event.type === "dblclick") {
-      this.#pathDoubleClick(event);
       return;
     }
   }
@@ -86,43 +83,10 @@ export class Editor {
     }
     return;
   }
-  #pathDoubleClick(event) {
-    const key = event.target.getAttribute("data-point");
-    if (!key || key.includes("-a-")) {
-      return;
-    }
-    const targetPoint = this.updatedPoints[key];
-    let newPoints = this.currentPath.editNode({ id: key }, (item) =>
-      this.gs.save(item),
-    );
-    if (newPoints.length === 0) {
-      for (let i = 0; i < 2; i++) {
-        const a = this.updatedPoints[key + "-a-" + i];
-        this.svg.removeChild(a.circle);
-        if (a.anchorLine) {
-          this.svg.removeChild(a.anchorLine.line);
-        }
-      }
-      return;
-    }
-    for (let i = 0; i < newPoints.length; i++) {
-      let nKey = targetPoint.id + "-a-" + i;
-      const { x, y } = newPoints[i];
-      const anchorPoint = i === 0 ? targetPoint.prevEP : targetPoint;
-      this.updatedPoints[nKey] = new EditPoint(x, y, nKey, 3)
-        .setAnchorPoint(anchorPoint)
-        .createAnchorLine();
-      this.svg.appendChild(this.updatedPoints[nKey].circle);
-      this.svg.appendChild(this.updatedPoints[nKey].anchorLine.line);
-    }
-  }
   editCircle(event) {
     this.edit(event, "circle");
   }
   editLine(event) {
     this.edit(event, "line");
-  }
-  editPath(event) {
-    this.edit(event, "path");
   }
 }

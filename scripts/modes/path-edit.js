@@ -1,0 +1,211 @@
+import { EditPoint } from "../classes/editpoint.js";
+import { SVGLine } from "../classes/line.js";
+import { SVGPath } from "../classes/path.js";
+import { pointerToSvgCoords } from "../helper.js";
+
+const DRAW = 2;
+const EDIT = 1;
+export class PathEditor {
+  #editPoints = {};
+  #gs;
+  #svg;
+  #currentPath;
+  #currentEP;
+  #window;
+  #modeId;
+  #previewLine;
+  #lastClick;
+  #isDrawing;
+
+  constructor(gs) {
+    this.#gs = gs;
+    gs.subscribe(() => {
+      this.#svg = gs.state.svg;
+      this.#currentPath = gs.state.currentPath;
+      this.#window = gs.state.window;
+      this.#modeId = gs.state.modeId;
+    });
+  }
+  #exit() {
+    this.#currentEP = null;
+    if (this.#previewLine) {
+      this.#svg.removeChild(this.#previewLine.line);
+      this.#previewLine = null;
+    }
+    if (this.#modeId === DRAW) {
+      // todo: better mode changing
+      this.#gs.setState({ mode: "PATH-EDIT", modeId: EDIT });
+      return;
+    }
+    if (this.#modeId !== EDIT) {
+      return;
+    }
+    this.#editPoints = {};
+    this.#svg.querySelectorAll("[data-edit]").forEach((elem) => {
+      this.#svg.removeChild(elem);
+    });
+    this.#gs.setState({ currentPath: null });
+  }
+  #startDrawing({ x, y, targetPoint }) {
+    this.#isDrawing = true;
+    if (!this.#currentPath) {
+      const newP = SVGPath.create(x, y);
+      this.#gs.setState({ currentPath: newP });
+      this.#previewLine = new SVGLine(this.x, this.y).setAttribute(
+        "id",
+        "path-preview"
+      );
+      this.#svg.appendChild(newP.path);
+      this.#svg.appendChild(this.#previewLine.line);
+      this.#lastClick = { x, y, id: newP.moves[0].id };
+      return;
+    }
+    if (targetPoint) {
+      console.error("TODO: start drawing from point.");
+      console.log(target);
+    }
+  }
+  #drawLine({ x, y, targetPoint }) {
+    if (this.#currentPath) {
+      let pe;
+      if (targetPoint) {
+        pe = this.#currentPath.addPoint(targetPoint);
+      } else {
+        pe = this.#currentPath.addPoint({ x, y });
+      }
+      this.#lastClick = { x, y, id: pe.id };
+    }
+  }
+  #setCurrentEditPoint({ targetPoint }) {
+    if (targetPoint) {
+      this.#lastClick = {
+        x: targetPoint.x,
+        y: targetPoint.y,
+        id: targetPoint.id,
+      };
+      this.#currentEP = targetPoint;
+      this.#currentEP.setAttribute("stroke", "#00F");
+    }
+  }
+  #moveEditPoint({ x, y }) {
+    if (this.#currentEP) {
+      this.#currentEP.update({ x, y });
+      this.#currentPath.edit({ x, y, id: this.#currentEP.id }, () => {});
+    }
+  }
+  #unsetCurrentEditPoint() {
+    if (this.#currentEP) {
+      this.#currentEP.setAttribute("stroke", "#333");
+      this.#currentEP = null;
+    }
+  }
+  #drawPreview({ x, y }) {
+    if (this.#currentPath) {
+      this.#previewLine
+        .setCoords({
+          x1: this.#lastClick.x,
+          y1: this.#lastClick.y,
+          x2: x,
+          y2: y,
+        })
+        .draw();
+    }
+  }
+  #toggleNodeType({ targetPoint }) {
+    if (!targetPoint || targetPoint.id.includes("-a-")) {
+      return;
+    }
+    let nPts = this.#currentPath.editNode(targetPoint);
+    if (nPts.length === 0) {
+      for (let i = 0; i < 2; i++) {
+        const a = this.#editPoints[targetPoint.id + "-a-" + i];
+        this.#svg.removeChild(a.circle);
+        if (a.anchorLine) {
+          this.#svg.removeChild(a.anchorLine.line);
+        }
+      }
+      return;
+    }
+    for (let i = 0; i < nPts.length; i++) {
+      let nId = targetPoint.id + "-a-" + i;
+      const { x, y } = nPts[i];
+      const anchorPoint = i === 0 ? targetPoint.prevEP : targetPoint;
+      this.#editPoints[nId] = new EditPoint(x, y, nId, 3)
+        .setAnchorPoint(anchorPoint)
+        .createAnchorLine();
+      this.#svg.appendChild(this.#editPoints[nId].circle);
+      this.#svg.appendChild(this.#editPoints[nId].anchorLine.line);
+    }
+  }
+  #addEPoint() {
+    let { x, y, id } = this.#lastClick;
+    // potentionally get the last move from currentPath
+    const [ep] = EditPoint.create({ x, y, id }, this.#currentEP);
+    this.#editPoints[ep.id] = ep;
+    this.#currentEP = ep;
+    this.#svg.appendChild(ep.circle);
+  }
+  #validateTarget(_) {
+    return true;
+  }
+  #enrichEvent(event) {
+    const { x, y } = pointerToSvgCoords(event, this.#window);
+    let targetPoint;
+    if (
+      (event.type === "mousedown" || event.type === "dblclick") &&
+      event.target?.attributes["data-edit"]
+    ) {
+      const id = event.target?.getAttribute("data-point");
+      targetPoint = this.#editPoints[id];
+    }
+    return {
+      type: event.type,
+      target: event.target,
+      key: event.key,
+      x: x,
+      y: y,
+      targetPoint: targetPoint,
+    };
+  }
+  edit(event) {
+    if (!this.#validateTarget(event)) {
+      return;
+    }
+    event = this.#enrichEvent(event);
+    if (event.type === "mousedown") {
+      if (this.#modeId === DRAW) {
+        if (!this.#isDrawing) {
+          this.#startDrawing(event);
+        } else {
+          this.#drawLine(event);
+        }
+        this.#addEPoint();
+      }
+      if (this.#modeId === EDIT) {
+        this.#setCurrentEditPoint(event);
+      }
+    }
+    if (event.type === "mousemove") {
+      if (this.#modeId === DRAW) {
+        this.#drawPreview(event);
+      }
+      if (this.#modeId === EDIT) {
+        this.#moveEditPoint(event);
+      }
+    }
+    if (event.type === "mouseup") {
+      if (this.#modeId === EDIT) {
+        this.#unsetCurrentEditPoint();
+      }
+    }
+    if (event.type === "dblclick") {
+      if (this.#modeId === EDIT) {
+        this.#toggleNodeType(event);
+      }
+    }
+    if (event.key === "Escape") {
+      this.#exit();
+    }
+    this.#gs.save(this);
+  }
+}

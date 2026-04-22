@@ -1,8 +1,9 @@
+import { uid } from "../helper.js";
 import { SVGCircle } from "./circle.js";
 import { SVGLine } from "./line.js";
 
 export class EditPoint extends SVGCircle {
-  constructor(x, y, id, r = 5) {
+  constructor(x, y, id = uid(), r = 5) {
     super(x, y, r, id);
     this.setAttribute("data-edit", "true")
       .setAttribute("data-point", id)
@@ -16,23 +17,40 @@ export class EditPoint extends SVGCircle {
     this.anchorLine = false;
   }
 
-  static create(key, { x, y, x1, y1, x2, y2 }, prevEPoint) {
+  static create({ id, x, y, x1, y1, x2, y2 }, prevEPoint) {
     const eps = [];
-    const ep = new EditPoint(x, y, key);
+    const ep = new EditPoint(x, y, id);
     if (x1 != undefined && y1 != undefined) {
-      const a1 = new EditPoint(x1, y1, `${key}-a-0`, 3)
+      const a1 = new EditPoint(x1, y1, `${id}-a-0`, 3)
         .setAnchorPoint(prevEPoint)
         .createAnchorLine();
       eps.push(a1);
     }
     if (x2 != undefined && y2 != undefined) {
-      const a2 = new EditPoint(x2, y2, `${key}-a-1`, 3)
+      const a2 = new EditPoint(x2, y2, `${id}-a-1`, 3)
         .setAnchorPoint(ep)
         .createAnchorLine();
       eps.push(a2);
     }
     ep.linkPrev(prevEPoint);
     return [ep, ...eps];
+  }
+
+  draw() {
+    this.setAttribute("cx", this.x);
+    this.setAttribute("cy", this.y);
+    this.setAttribute("r", this.r);
+    if (this.anchorLine) {
+      this.anchorLine
+        .setCoords({
+          x1: this.anchorPoint.x,
+          y1: this.anchorPoint.y,
+          x2: this.x,
+          y2: this.y,
+        })
+        .draw();
+    }
+    return this;
   }
 
   update({ x, y }) {

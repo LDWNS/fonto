@@ -36,6 +36,12 @@ export class SVGLine {
     this.attributes[field] = value;
     return this;
   }
+  draw() {
+    this.setAttribute("x1", this.x1);
+    this.setAttribute("y1", this.y1);
+    this.setAttribute("x2", this.x2);
+    this.setAttribute("y2", this.y2);
+  }
   update({ x, y }, save) {
     if (!this.isDrawing) {
       this.isDrawing = true;

@@ -1,0 +1,48 @@
+{
+  "s": {
+    "mode": "SELECT",
+    "modeCode": 0,
+    "actions": {
+      "click": [
+        "PATH-EDIT",
+        "CIRCLE-EDIT",
+        "LINE-EDIT"
+      ]
+    }
+  },
+  "p": {
+    "mode": "PATH-EDIT",
+    "modeCode": 1,
+    "sub-mode": {
+      "mode": "PATH-DRAW",
+      "modeCode": 2
+    },
+    "description": "p enters PATH-DRAW mode, pressing Esc once exits to PATH-EDIT, pressing again exits to SELECT.",
+    "vars": [
+      "isDrawing",
+      "drawPreview",
+      "currentEditPoint"
+    ],
+    "actions": {
+      "click": [
+        // start drawing uses event{x, y} or event.target.editPoint as start
+        "startDrawing",
+        "drawLine",
+        // maybe
+        "drawPath"
+      ],
+      "drag": [
+        // includes mouse down, mouse move and mouse up
+        "moveEditPoint",
+        "drawPreview"
+      ],
+      "dblclick": [
+        "toggleNodeType"
+      ],
+      "escape": [
+        "select mode",
+        "stopDrawing"
+      ]
+    }
+  }
+}
