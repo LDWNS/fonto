@@ -5,6 +5,7 @@ import { pointerToSvgCoords } from "../helper.js";
 
 const DRAW = 2;
 const EDIT = 1;
+const SELECT = 0;
 export class PathEditor {
   #editPoints = {};
   #gs;
@@ -26,18 +27,16 @@ export class PathEditor {
       this.#modeId = gs.state.modeId;
     });
   }
-  #exit() {
+  exit() {
     this.#currentEP = null;
+    this.#isDrawing = false;
     if (this.#previewLine) {
       this.#svg.removeChild(this.#previewLine.line);
       this.#previewLine = null;
     }
     if (this.#modeId === DRAW) {
       // todo: better mode changing
-      this.#gs.setState({ mode: "PATH-EDIT", modeId: EDIT });
-      return;
-    }
-    if (this.#modeId !== EDIT) {
+      this.#gs.setMode({ id: EDIT });
       return;
     }
     this.#editPoints = {};
@@ -45,25 +44,24 @@ export class PathEditor {
       this.#svg.removeChild(elem);
     });
     this.#gs.setState({ currentPath: null });
+    this.#gs.setMode({ id: SELECT });
   }
   #startDrawing({ x, y, targetPoint }) {
-    this.#isDrawing = true;
     if (!this.#currentPath) {
       const newP = SVGPath.create(x, y);
       this.#gs.setState({ currentPath: newP });
-      this.#previewLine = new SVGLine(this.x, this.y).setAttribute(
-        "id",
-        "path-preview"
-      );
       this.#svg.appendChild(newP.path);
-      this.#svg.appendChild(this.#previewLine.line);
       this.#lastClick = { x, y, id: newP.moves[0].id };
-      return;
+    } else {
+      if (targetPoint) {
+        ({ x, y } = targetPoint);
+      }
+      let pe = this.#currentPath.addOriginNode({ x, y });
+      this.#lastClick = { x, y, id: pe.id };
     }
-    if (targetPoint) {
-      console.error("TODO: start drawing from point.");
-      console.log(target);
-    }
+    this.#previewLine = new SVGLine(x, y).setAttribute("id", "path-preview");
+    this.#svg.appendChild(this.#previewLine.line);
+    this.#isDrawing = true;
   }
   #drawLine({ x, y, targetPoint }) {
     if (this.#currentPath) {
@@ -100,7 +98,7 @@ export class PathEditor {
     }
   }
   #drawPreview({ x, y }) {
-    if (this.#currentPath) {
+    if (this.#previewLine) {
       this.#previewLine
         .setCoords({
           x1: this.#lastClick.x,
@@ -204,7 +202,7 @@ export class PathEditor {
       }
     }
     if (event.key === "Escape") {
-      this.#exit();
+      this.exit();
     }
     this.#gs.save(this);
   }

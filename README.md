@@ -11,9 +11,9 @@
   - [x] edit paths
   - [x] enable Cubic Bezier curves
   - [ ] extend paths once drawn
-    - requires pointer to svg coords helper
-    - requires mode redesign
-    - requires path draw
+    - [x] requires pointer to svg coords helper
+    - [x] requires mode redesign
+    - [x] requires path draw
     - requires EditPoint redesign
   - [ ] add edit point to existing path
   - [ ] add arcs for "rounding corners"

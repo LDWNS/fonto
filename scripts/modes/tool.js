@@ -6,21 +6,21 @@ export class Tools {
       this.history = gs.state.history;
     });
   }
-  select(event, updateMode) {
+  select(event) {
     switch (event.type) {
       case "click":
         switch (event.target.nodeName) {
           case "circle":
             this.gs.setState({ currentPath: this.history[event.target.id] });
-            updateMode("CIRCLE-EDIT");
+            this.gs.setMode({ mode: "CIRCLE-EDIT" });
             break;
           case "line":
             this.gs.setState({ currentPath: this.history[event.target.id] });
-            updateMode("LINE-EDIT");
+            this.gs.setMode({ mode: "LINE-EDIT" });
             break;
           case "path":
             this.gs.setState({ currentPath: this.history[event.target.id] });
-            updateMode("PATH-EDIT");
+            this.gs.setMode({ mode: "PATH-EDIT" });
             break;
           default:
             break;

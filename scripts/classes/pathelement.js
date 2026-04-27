@@ -1,3 +1,5 @@
+import { uid } from "../helper.js";
+
 export class SVGPathElement {
   constructor(type, list) {
     this.id = uid();
@@ -25,6 +27,11 @@ export class SVGPathElement {
       output += ` ${this.list[a]} ${this.list[b]}${
         needsCommas && b + 1 < this.list.length ? "," : ""
       }`;
+    }
+    // figma trick
+    if ((this.type !== "M", this.prevNode)) {
+      const { x: prevX, y: prevY } = this.prevNode.getPoint();
+      output = `M ${prevX} ${prevY}` + output;
     }
     return output;
   }
@@ -107,4 +114,3 @@ export class SVGPathElement {
     }
   }
 }
-

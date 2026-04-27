@@ -1,4 +1,5 @@
 import { uid } from "../helper.js";
+import { SVGPathElement } from "./pathelement.js";
 
 export class SVGPath {
   constructor(x, y) {
@@ -58,8 +59,15 @@ export class SVGPath {
     return { x, y };
   }
   addPoint({ x, y }) {
-    const prev = this.moves[this.moves.length - 1];
+    let prev = this.moves[this.moves.length - 1];
     const pe = new SVGPathElement("L", [x, y]).linkPrev(prev);
+    this.moves.push(pe);
+    this.moveString += ` ${pe.toString()}`;
+    this.setAttribute("d", this.moveString);
+    return pe;
+  }
+  addOriginNode({ x, y }) {
+    const pe = new SVGPathElement("M", [x, y]);
     this.moves.push(pe);
     this.moveString += ` ${pe.toString()}`;
     this.setAttribute("d", this.moveString);
