@@ -5,6 +5,7 @@ import { Drawer } from "./modes/draw.js";
 import { Tools } from "./modes/tool.js";
 import { Editor } from "./modes/edit.js";
 import { PathEditor } from "./modes/path-edit.js";
+import { TimeLine } from "./classes/timeline.js";
 
 const loadHistory = (svg) => {
   const hydratedList = {};
@@ -18,7 +19,7 @@ const loadHistory = (svg) => {
           break;
         case "line":
           newItem = SVGLine.fromHistory(item);
-          svg.appendChild(newItem.line);
+          svg.appendChild(newItem.node);
           break;
         case "path":
           newItem = SVGPath.fromHistory(item);
@@ -44,13 +45,14 @@ class Store {
     Object.keys(this.modes).forEach(
       (k) => (this.modeIds[this.modes[k].id] = k)
     );
-    this.state.history = loadHistory(this.state.svg);
+    this.state.history = loadHistory(this.state.canvas.svg);
     this.listeners = [];
     this.drawer = new Drawer(this);
     this.tools = new Tools(this);
     this.editor = new Editor(this);
     this.pathEditor = new PathEditor(this);
     this.#updateModeSpan();
+    this.timeline = new TimeLine(this);
   }
 
   modes = {

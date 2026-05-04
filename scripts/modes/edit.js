@@ -4,19 +4,18 @@ import { pointerToSvgCoords } from "../helper.js";
 export class Editor {
   constructor(gs) {
     this.gs = gs;
-    this.svg = gs;
     this.currentPath = null;
-    this.top = gs.state.window.top;
-    this.left = gs.state.window.left;
+    this.top = gs.state.canvas.window.top;
+    this.left = gs.state.canvas.window.left;
     this.isEditing = false;
     this.currentPathPoints = {};
     this.updatedPoints = {};
     this.movingPoint = null;
     gs.subscribe(() => {
-      this.svg = gs.state.svg;
+      this.svg = gs.state.canvas.svg;
       this.currentPath = gs.state.currentPath;
-      this.top = gs.state.window.top;
-      this.left = gs.state.window.left;
+      this.top = gs.state.canvas.window.top;
+      this.left = gs.state.canvas.window.left;
     });
   }
   exitEditMode() {
@@ -51,7 +50,7 @@ export class Editor {
       this.movingPoint.updateAnchoredPoints(dx, dy);
       this.currentPath.edit(
         { x, y, dx, dy, id: this.movingPoint.attributes["data-point"] },
-        (item) => this.gs.save(item),
+        (item) => this.gs.save(item)
       );
       return;
     }
@@ -75,7 +74,7 @@ export class Editor {
         this.updatedPoints[ePoint.id] = ePoint;
         this.svg.appendChild(ePoint.circle);
         if (ePoint.anchorLine) {
-          this.svg.appendChild(ePoint.anchorLine.line);
+          this.svg.appendChild(ePoint.anchorLine.node);
         }
       });
 

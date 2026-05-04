@@ -1,9 +1,14 @@
 import { Store } from "./globalstate.js";
 
-const svg = document.querySelector("svg");
+const svg = document.querySelector("svg#main");
+const timeline = document.querySelector("svg#timeline");
 
 const { left, top } = svg.getBoundingClientRect();
-const gs = new Store({ svg: svg, window: { left, top }, mode: "SELECT" });
+const gs = new Store({
+  canvas: { window: { left, top }, svg: svg },
+  timeline: { window: timeline.getBoundingClientRect(), svg: timeline },
+  mode: "SELECT",
+});
 
 let history = gs.state.history;
 let currentPath = gs.state.currentPath;
@@ -15,6 +20,11 @@ gs.subscribe(() => {
   currentPath = gs.state.currentPath;
   mode = gs.state.mode;
 });
+
+timeline.addEventListener("click", (event) => gs.timeline.edit(event));
+// timeline.addEventListener("mousedown", (event) => gs.timeline.edit(event));
+// timeline.addEventListener("mousemove", (event) => gs.timeline.edit(event));
+// timeline.addEventListener("mouseup", (event) => gs.timeline.edit(event));
 
 // Event Listeners
 svg.addEventListener("click", (event) => modes[mode].do(event));
@@ -62,6 +72,6 @@ document.addEventListener("keydown", (event) => {
     modes[mode].do(event);
   }
   if (currentPath) {
-    currentPath.handleKeyEvent(event, (item) => gs.save(item));
+    currentPath.handleKeyEvent(event);
   }
 });

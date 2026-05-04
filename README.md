@@ -14,9 +14,16 @@
     - [x] requires pointer to svg coords helper
     - [x] requires mode redesign
     - [x] requires path draw
-    - requires EditPoint redesign
+    - [ ] requires EditPoint redesign
   - [ ] add edit point to existing path
   - [ ] add arcs for "rounding corners"
+  - [ ] add move functionality
+- [ ] timeline
+  - [ ] html & css
+  - [ ] create keyframe point 
+  - [ ] remove keyframe point 
+  - [ ] move keyframe point 
+  - [ ] play animation 
 - [ ] make "canvas" editable
   - [ ] change svg size
   - [ ] change svg zoom level

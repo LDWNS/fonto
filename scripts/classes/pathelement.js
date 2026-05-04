@@ -7,9 +7,14 @@ export class SVGPathElement {
     this.list = list;
   }
   static fromString(str, prevNode) {
-    const arr = str?.split(" ") ?? [];
-    const moves = arr.slice(1).map((x) => parseFloat(x.replaceAll(/,/g, "")));
-    return new SVGPathElement(arr[0], moves).linkPrev(prevNode);
+    const arr = str?.trim().split(" ") ?? [];
+    const moves = [];
+    let moveIndex = 0;
+    if (arr[0] === "M" && arr[3] !== undefined) {
+      moveIndex = 3;
+    }
+    arr.slice(moveIndex + 1).forEach((x) => moves.push(parseFloat(x.replaceAll(/,/g, ""))));
+    return new SVGPathElement(arr[moveIndex], moves).linkPrev(prevNode);
   }
   linkPrev(prevNode) {
     if (prevNode) {
@@ -25,13 +30,14 @@ export class SVGPathElement {
       const a = i * 2;
       const b = a + 1;
       output += ` ${this.list[a]} ${this.list[b]}${
-        needsCommas && b + 1 < this.list.length ? "," : ""
+        needsCommas && b + 1 < this.list.length ? "," : " "
       }`;
     }
     // figma trick
-    if ((this.type !== "M", this.prevNode)) {
+    // todo: fix this
+    if (this.type !== "M" && this.prevNode) {
       const { x: prevX, y: prevY } = this.prevNode.getPoint();
-      output = `M ${prevX} ${prevY}` + output;
+      output = `M ${prevX} ${prevY} ` + output;
     }
     return output;
   }

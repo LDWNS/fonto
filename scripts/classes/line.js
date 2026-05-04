@@ -2,7 +2,7 @@ import { uid } from "../helper.js";
 export class SVGLine {
   constructor(x, y, id = uid()) {
     this.id = id;
-    this.line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    this.node = document.createElementNS("http://www.w3.org/2000/svg", "line");
     this.type = "line";
     this.x1 = x;
     this.y1 = y;
@@ -32,7 +32,7 @@ export class SVGLine {
     return this;
   }
   setAttribute(field, value) {
-    this.line.setAttribute(field, value);
+    this.node.setAttribute(field, value);
     this.attributes[field] = value;
     return this;
   }
@@ -42,7 +42,7 @@ export class SVGLine {
     this.setAttribute("x2", this.x2);
     this.setAttribute("y2", this.y2);
   }
-  update({ x, y }, save) {
+  update({ x, y }) {
     if (!this.isDrawing) {
       this.isDrawing = true;
       this.setAttribute("x1", this.x1);
@@ -55,10 +55,9 @@ export class SVGLine {
       this.setAttribute("x2", x);
       this.setAttribute("y2", y);
     }
-    save(this);
     return this;
   }
-  edit({ x, y, id }, save) {
+  edit({ x, y, id }) {
     if (id === "start") {
       this.x1 = x;
       this.y1 = y;
@@ -70,7 +69,6 @@ export class SVGLine {
       this.setAttribute("x2", x);
       this.setAttribute("y2", y);
     }
-    save(this);
   }
   getEditPoints() {
     return {

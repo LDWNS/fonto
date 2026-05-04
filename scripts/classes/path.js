@@ -31,7 +31,7 @@ export class SVGPath {
       newC.setAttribute(field, value);
     });
     newC.moves = [];
-    const split = newC.moveString.split(/ (?=[a-zA-Z])/);
+    const split = newC.moveString.split(/ (?=[M])/);
     for (let i = 0; i < split.length; i++) {
       newC.moves.push(
         SVGPathElement.fromString(
@@ -62,7 +62,7 @@ export class SVGPath {
     let prev = this.moves[this.moves.length - 1];
     const pe = new SVGPathElement("L", [x, y]).linkPrev(prev);
     this.moves.push(pe);
-    this.moveString += ` ${pe.toString()}`;
+    this.moveString += ` ${pe.toString()} `;
     this.setAttribute("d", this.moveString);
     return pe;
   }

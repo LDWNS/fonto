@@ -1,7 +1,7 @@
 import { EditPoint } from "../classes/editpoint.js";
 import { SVGLine } from "../classes/line.js";
 import { SVGPath } from "../classes/path.js";
-import { pointerToSvgCoords } from "../helper.js";
+import { pointerToSvgCoords, uid } from "../helper.js";
 
 const DRAW = 2;
 const EDIT = 1;
@@ -23,15 +23,15 @@ export class PathEditor {
     gs.subscribe(() => {
       this.#svg = gs.state.svg;
       this.#currentPath = gs.state.currentPath;
-      this.#window = gs.state.window;
-      this.#modeId = gs.state.modeId;
+      this.#window = gs.state.canvas.window;
+      this.#modeId = gs.state.canvas.modeId;
     });
   }
   exit() {
     this.#currentEP = null;
     this.#isDrawing = false;
     if (this.#previewLine) {
-      this.#svg.removeChild(this.#previewLine.line);
+      this.#svg.removeChild(this.#previewLine.node);
       this.#previewLine = null;
     }
     if (this.#modeId === DRAW) {
@@ -60,7 +60,7 @@ export class PathEditor {
       this.#lastClick = { x, y, id: pe.id };
     }
     this.#previewLine = new SVGLine(x, y).setAttribute("id", "path-preview");
-    this.#svg.appendChild(this.#previewLine.line);
+    this.#svg.appendChild(this.#previewLine.node);
     this.#isDrawing = true;
   }
   #drawLine({ x, y, targetPoint }) {
@@ -87,8 +87,11 @@ export class PathEditor {
   }
   #moveEditPoint({ x, y }) {
     if (this.#currentEP) {
+      const dx = x - this.#currentEP.x;
+      const dy = y - this.#currentEP.y;
       this.#currentEP.update({ x, y });
-      this.#currentPath.edit({ x, y, id: this.#currentEP.id }, () => {});
+      this.#currentEP.updateAnchoredPoints(dx, dy);
+      this.#currentPath.edit({ x, y, dx, dy, id: this.#currentEP.id });
     }
   }
   #unsetCurrentEditPoint() {
@@ -117,9 +120,9 @@ export class PathEditor {
     if (nPts.length === 0) {
       for (let i = 0; i < 2; i++) {
         const a = this.#editPoints[targetPoint.id + "-a-" + i];
-        this.#svg.removeChild(a.circle);
+        this.#svg.removeChild(a.node);
         if (a.anchorLine) {
-          this.#svg.removeChild(a.anchorLine.line);
+          this.#svg.removeChild(a.anchorLine.node);
         }
       }
       return;
@@ -131,8 +134,8 @@ export class PathEditor {
       this.#editPoints[nId] = new EditPoint(x, y, nId, 3)
         .setAnchorPoint(anchorPoint)
         .createAnchorLine();
-      this.#svg.appendChild(this.#editPoints[nId].circle);
-      this.#svg.appendChild(this.#editPoints[nId].anchorLine.line);
+      this.#svg.appendChild(this.#editPoints[nId].node);
+      this.#svg.appendChild(this.#editPoints[nId].anchorLine.node);
     }
   }
   #addEPoint() {
@@ -141,7 +144,23 @@ export class PathEditor {
     const [ep] = EditPoint.create({ x, y, id }, this.#currentEP);
     this.#editPoints[ep.id] = ep;
     this.#currentEP = ep;
-    this.#svg.appendChild(ep.circle);
+    this.#svg.appendChild(ep.node);
+  }
+  #drawEPoints() {
+    let lastEP;
+    this.#editPoints = {};
+    Object.values(this.#currentPath.getEditPoints()).forEach((ep) => {
+      const editPoints = EditPoint.create(ep, lastEP);
+      editPoints.forEach((ePoint) => {
+        this.#editPoints[ePoint.id] = ePoint;
+        this.#svg.appendChild(ePoint.node);
+        if (ePoint.anchorLine) {
+          this.#svg.appendChild(ePoint.anchorLine.node);
+        }
+      });
+      lastEP = editPoints[0];
+    });
+    this.#currentEP = null;
   }
   #validateTarget(_) {
     return true;
@@ -204,6 +223,14 @@ export class PathEditor {
     if (event.key === "Escape") {
       this.exit();
     }
-    this.#gs.save(this);
+
+    if (
+      this.#modeId === EDIT &&
+      this.#currentPath &&
+      Object.keys(this.#editPoints).length === 0
+    ) {
+      this.#drawEPoints();
+    }
+    this.#gs.save(this.#currentPath);
   }
 }

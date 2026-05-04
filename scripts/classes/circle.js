@@ -4,7 +4,7 @@ import { uid, distance } from "../helper.js";
 export class SVGCircle {
   constructor(x, y, r, id = uid()) {
     this.id = id;
-    this.circle = document.createElementNS(
+    this.node = document.createElementNS(
       "http://www.w3.org/2000/svg",
       "circle"
     );
@@ -28,12 +28,12 @@ export class SVGCircle {
     return newC;
   }
   setAttribute(field, value) {
-    this.circle.setAttribute(field, value);
+    this.node.setAttribute(field, value);
     this.attributes[field] = value;
     return this;
   }
   removeAttribute(field) {
-    this.circle.removeAttribute(field);
+    this.node.removeAttribute(field);
     delete this.attributes[field];
     return this;
   }
@@ -43,7 +43,7 @@ export class SVGCircle {
     this.isDrawing = false;
     return this;
   }
-  update({ x, y }, save) {
+  update({ x, y }) {
     if (!this.isDrawing) {
       this.isDrawing = true;
       this.setAttribute("cx", this.x);
@@ -53,10 +53,9 @@ export class SVGCircle {
       this.r = distance({ x1: this.x, y1: this.y, x2: x, y2: y });
       this.setAttribute("r", this.r);
     }
-    save(this);
     return this;
   }
-  edit({ x, y, id }, save) {
+  edit({ x, y, id }) {
     if (id === this.id) {
       this.x = x;
       this.y = y;
@@ -66,7 +65,6 @@ export class SVGCircle {
       this.r = distance({ x1: this.x, y1: this.y, x2: x, y2: y });
       this.setAttribute("r", this.r);
     }
-    save(this);
   }
   getEditPoints() {
     const output = {};

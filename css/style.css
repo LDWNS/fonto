@@ -17,7 +17,7 @@ canvas {
   position: relative;
   z-index: 1;
 }
-svg {
+svg#canvas {
   border: 1px solid #fff;
   line,
   circle:not([data-edit]),
@@ -39,4 +39,20 @@ p {
   width: 500px;
   padding: 0;
   margin: 0;
+}
+
+#timeline {
+  width: 500px;
+  height: 15px;
+  position: relative;
+}
+#timeline .point {
+  height: 11px;
+  width: auto;
+  background: black;
+  border-radius: 5px;
+  aspect-ratio: 1;
+  transform: translateY(-50%);
+  position: absolute;
+  top: 50%;
 }
