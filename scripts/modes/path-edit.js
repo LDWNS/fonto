@@ -21,10 +21,10 @@ export class PathEditor {
   constructor(gs) {
     this.#gs = gs;
     gs.subscribe(() => {
-      this.#svg = gs.state.svg;
+      this.#svg = gs.state.canvas.svg;
       this.#currentPath = gs.state.currentPath;
       this.#window = gs.state.canvas.window;
-      this.#modeId = gs.state.canvas.modeId;
+      this.#modeId = gs.state.modeId;
     });
   }
   exit() {
@@ -214,11 +214,13 @@ export class PathEditor {
       if (this.#modeId === EDIT) {
         this.#unsetCurrentEditPoint();
       }
+      this.#gs.save(this.#currentPath);
     }
     if (event.type === "dblclick") {
       if (this.#modeId === EDIT) {
         this.#toggleNodeType(event);
       }
+      this.#gs.save(this.#currentPath);
     }
     if (event.key === "Escape") {
       this.exit();
@@ -231,6 +233,5 @@ export class PathEditor {
     ) {
       this.#drawEPoints();
     }
-    this.#gs.save(this.#currentPath);
   }
 }

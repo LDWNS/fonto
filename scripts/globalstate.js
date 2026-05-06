@@ -7,35 +7,6 @@ import { Editor } from "./modes/edit.js";
 import { PathEditor } from "./modes/path-edit.js";
 import { TimeLine } from "./classes/timeline.js";
 
-const loadHistory = (svg) => {
-  const hydratedList = {};
-  Object.entries(JSON.parse(localStorage.getItem("history") ?? "{}")).forEach(
-    ([_, item]) => {
-      let newItem;
-      switch (item.type) {
-        case "circle":
-          newItem = SVGCircle.fromHistory(item);
-          svg.appendChild(newItem.circle);
-          break;
-        case "line":
-          newItem = SVGLine.fromHistory(item);
-          svg.appendChild(newItem.node);
-          break;
-        case "path":
-          newItem = SVGPath.fromHistory(item);
-          svg.appendChild(newItem.path);
-          break;
-        default:
-          break;
-      }
-      if (newItem) {
-        hydratedList[newItem.id] = newItem;
-      }
-    }
-  );
-  return hydratedList;
-};
-
 class Store {
   constructor(initialState) {
     this.state = {
@@ -45,14 +16,27 @@ class Store {
     Object.keys(this.modes).forEach(
       (k) => (this.modeIds[this.modes[k].id] = k)
     );
-    this.state.history = loadHistory(this.state.canvas.svg);
+
     this.listeners = [];
+
     this.drawer = new Drawer(this);
     this.tools = new Tools(this);
     this.editor = new Editor(this);
     this.pathEditor = new PathEditor(this);
     this.#updateModeSpan();
     this.timeline = new TimeLine(this);
+
+    this.state.frames = {};
+    // todo: add all points, sets frames & activePoints
+    this.#loadFrame(this.state.canvas.svg);
+    if (!this.state.timeline.activePoint) {
+      const point = this.timeline.addPoint().setAttribute("fill", "#333");
+      this.state.timeline.activePoint = point.id;
+      this.state.frames[point.id] = {};
+      this.timeline.draw();
+    }
+    this.state.timeline.points = this.timeline.points;
+    this.state.frame = this.state.frames[this.state.timeline.activePoint];
   }
 
   modes = {
@@ -98,6 +82,39 @@ class Store {
     },
   };
 
+  #loadFrame = () => {
+    const frames = Object.entries(
+      JSON.parse(localStorage.getItem("frames") ?? "{}")
+    );
+    frames.forEach(([key, frame]) => {
+      Object.entries(frame).forEach(([_, item]) => {
+        let newItem;
+        switch (item.type) {
+          case "circle":
+            newItem = SVGCircle.fromFrame(item);
+            this.state.canvas.svg.appendChild(newItem.node);
+            break;
+          case "line":
+            newItem = SVGLine.fromFrame(item);
+            this.state.canvas.svg.appendChild(newItem.node);
+            break;
+          case "path":
+            newItem = SVGPath.fromFrame(item);
+            this.state.canvas.svg.appendChild(newItem.path);
+            break;
+          default:
+            break;
+        }
+        if (newItem) {
+          if (!this.state.frames[key]) {
+            this.state.frames[key] = {};
+          }
+          this.state.frames[key][newItem.id] = newItem;
+        }
+      });
+    });
+  };
+
   #updateModeSpan() {
     const modeSpan = document.querySelector("#mode");
     modeSpan.innerHTML = `${this.state.mode}`;
@@ -112,9 +129,9 @@ class Store {
       id = this.modes[mode].id;
     }
     if (mode === "SELECT") {
-      this.state.svg.classList = ["select-mode"];
+      this.state.canvas.svg.classList = ["select-mode"];
     } else {
-      this.state.svg.classList = [];
+      this.state.canvas.svg.classList = [];
     }
 
     const exitPathMode =
@@ -124,6 +141,26 @@ class Store {
     this.#updateModeSpan();
     if (exitPathMode) this.pathEditor.exit();
   };
+
+  // todo: move to ./classes/timeline.js
+  setActiveTPoint(point) {
+    this.state.timeline.points[this.state.timeline.activePoint].setAttribute(
+      "fill",
+      "transparent"
+    );
+    this.state.frames[point.id] = { ...this.state.frame };
+    this.state.frame = this.state.frames[point.id];
+    this.state.timeline.points[point.id] = point;
+    this.setState({
+      timeline: {
+        ...this.state.timeline,
+        activePoint: point.id,
+        points: this.state.timeline.points,
+      },
+      frames: this.state.frames,
+      frame: this.state.frame,
+    });
+  }
 
   subscribe(listener) {
     this.listeners.push(listener);
@@ -137,20 +174,22 @@ class Store {
     this.state = { ...this.state, ...newState };
     this.listeners.forEach((listener) => listener());
   }
-
   save = (item) => {
     if (item) {
-      this.state.history[item.id] = item;
+      this.state.frame[item.id] = item;
     }
-    localStorage.setItem("history", JSON.stringify(this.state.history));
+    this.state.frames[this.state.timeline.activePoint] = this.state.frame;
+    localStorage.setItem("frames", JSON.stringify(this.state.frames));
+    localStorage.setItem("tpoints", JSON.stringify(this.state.timeline));
     this.listeners.forEach((listener) => listener());
   };
 
   remove = (id) => {
     if (id) {
-      delete this.state.history[id];
+      delete this.state.frame[id];
+      this.state.frames[this.state.timeline.activePoint] = this.state.frame;
     }
-    localStorage.setItem("history", JSON.stringify(history));
+    localStorage.setItem("frames", JSON.stringify(frame));
     this.listeners.forEach((listener) => listener());
   };
 }

@@ -1,9 +1,9 @@
 export class Tools {
   constructor(gs) {
     this.gs = gs;
-    this.history = gs.state.history;
+    this.frame = gs.state.frame;
     gs.subscribe(() => {
-      this.history = gs.state.history;
+      this.frame = gs.state.frame;
     });
   }
   select(event) {
@@ -11,15 +11,21 @@ export class Tools {
       case "click":
         switch (event.target.nodeName) {
           case "circle":
-            this.gs.setState({ currentPath: this.history[event.target.id] });
+            this.gs.setState({
+              currentPath: this.frame[event.target.id],
+            });
             this.gs.setMode({ mode: "CIRCLE-EDIT" });
             break;
           case "line":
-            this.gs.setState({ currentPath: this.history[event.target.id] });
+            this.gs.setState({
+              currentPath: this.frame[event.target.id],
+            });
             this.gs.setMode({ mode: "LINE-EDIT" });
             break;
           case "path":
-            this.gs.setState({ currentPath: this.history[event.target.id] });
+            this.gs.setState({
+              currentPath: this.frame[event.target.id],
+            });
             this.gs.setMode({ mode: "PATH-EDIT" });
             break;
           default:
@@ -34,7 +40,7 @@ export class Tools {
     return { x: clientX - this.left, y: clientY - this.top };
   }
   move(event) {
-    let target = this.history[event.target?.id];
+    let target = this.frame[event.target?.id];
     if (!target) {
       return;
     }

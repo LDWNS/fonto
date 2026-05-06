@@ -13,7 +13,7 @@ export class SVGLine {
     this.setAttribute("stroke", "#333");
     this.setAttribute("id", this.id);
   }
-  static fromHistory(line) {
+  static fromFrame(line) {
     const newC = new SVGLine(line.x1, line.y1);
     newC.id = line.id;
     newC.x2 = line.x2;

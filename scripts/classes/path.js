@@ -22,7 +22,7 @@ export class SVGPath {
     newP.setAttribute("d", this.moveString);
     return newP;
   }
-  static fromHistory(path) {
+  static fromFrame(path) {
     const newC = new SVGPath(path.x, path.y);
     newC.id = path.id;
     newC.moveString = path.moveString;

@@ -5,14 +5,11 @@ import { SVGLine } from "./line.js";
 export class TimeLine {
   #gs;
   #svg;
-  #currentTimeLinePoints;
-  #movingPoint;
+  points;
   #window;
-  #y;
   constructor(gs) {
     this.#gs = gs;
-    this.#currentTimeLinePoints = {};
-    this.#movingPoint = null;
+    this.points = {};
     this.#svg = gs.state.timeline.svg;
     this.#window = gs.state.timeline.window;
     gs.subscribe(() => {
@@ -23,7 +20,7 @@ export class TimeLine {
 
   // todo: from storage
   init() {
-    this.#currentTimeLinePoints = {
+    this.points = {
       line: new SVGLine(null, null)
         .setAttribute("stroke", "#333")
         .setAttribute("stroke-width", "1px")
@@ -35,29 +32,36 @@ export class TimeLine {
         })
         .update({ x: undefined, y: undefined }),
     };
-    this.#addPoint()
     this.draw();
   }
 
   draw() {
     this.#svg.innerHtml = "";
-    Object.keys(this.#currentTimeLinePoints).forEach((key) => {
-      this.#svg.appendChild(this.#currentTimeLinePoints[key].node);
+    Object.keys(this.points).forEach((key) => {
+      this.#svg.appendChild(this.points[key].node);
     });
   }
-  #addPoint(event) {
+  addPoint(event) {
     const id = uid();
     const { x } = event ? pointerToSvgCoords(event, this.#window) : { x: 8 };
-    this.#currentTimeLinePoints[id] = new SVGCircle(x, 8, 5, id)
+    const newPoint = new SVGCircle(x, 8, 5, id)
       .update({ x, y: 8 })
-      .setAttribute("stroke", "#333")
-      .setAttribute("fill", "#333");
+      .setAttribute("stroke", "#333");
+    this.points[id] = newPoint;
+    return newPoint;
   }
 
   edit(event) {
     switch (event.type) {
       case "click":
-        this.#addPoint(event)
+        const id = event.target.id;
+        let targetPoint = this.#gs.state.timeline.points[id];
+        if (!targetPoint) {
+          targetPoint = this.addPoint(event);
+        }
+        targetPoint.setAttribute("fill", "#333");
+        this.#gs.setActiveTPoint(targetPoint);
+
         break;
       default:
         break;

@@ -1,11 +1,11 @@
 import { Store } from "./globalstate.js";
 
-const svg = document.querySelector("svg#main");
+const canvas = document.querySelector("svg#canvas");
 const timeline = document.querySelector("svg#timeline");
 
-const { left, top } = svg.getBoundingClientRect();
+const { left, top } = canvas.getBoundingClientRect();
 const gs = new Store({
-  canvas: { window: { left, top }, svg: svg },
+  canvas: { window: { left, top }, svg: canvas },
   timeline: { window: timeline.getBoundingClientRect(), svg: timeline },
   mode: "SELECT",
 });
@@ -22,16 +22,16 @@ gs.subscribe(() => {
 });
 
 timeline.addEventListener("click", (event) => gs.timeline.edit(event));
-// timeline.addEventListener("mousedown", (event) => gs.timeline.edit(event));
-// timeline.addEventListener("mousemove", (event) => gs.timeline.edit(event));
-// timeline.addEventListener("mouseup", (event) => gs.timeline.edit(event));
+timeline.addEventListener("mousedown", (event) => gs.timeline.edit(event));
+timeline.addEventListener("mousemove", (event) => gs.timeline.edit(event));
+timeline.addEventListener("mouseup", (event) => gs.timeline.edit(event));
 
 // Event Listeners
-svg.addEventListener("click", (event) => modes[mode].do(event));
-svg.addEventListener("mousedown", (event) => modes[mode].do(event));
-svg.addEventListener("mousemove", (event) => modes[mode].do(event));
-svg.addEventListener("mouseup", (event) => modes[mode].do(event));
-svg.addEventListener("dblclick", (event) => modes[mode].do(event));
+canvas.addEventListener("click", (event) => modes[mode].do(event));
+canvas.addEventListener("mousedown", (event) => modes[mode].do(event));
+canvas.addEventListener("mousemove", (event) => modes[mode].do(event));
+canvas.addEventListener("mouseup", (event) => modes[mode].do(event));
+canvas.addEventListener("dblclick", (event) => modes[mode].do(event));
 document.addEventListener("keydown", (event) => {
   let newMode;
   switch (event.key) {
@@ -51,16 +51,16 @@ document.addEventListener("keydown", (event) => {
       newMode = "SELECT";
       break;
     case "w":
-      svg.innerHTML = "";
+      canvas.innerHTML = "";
       localStorage.clear();
-      gs.setState({ currentPath: null, svg: svg });
+      gs.setState({ currentPath: null, svg: canvas });
       break;
     case "Backspace":
       if (mode === "SELECT") {
         return;
       }
-      const x = svg.querySelector(`#${currentPath.id}`);
-      svg.removeChild(x);
+      const x = canvas.querySelector(`#${currentPath.id}`);
+      canvas.removeChild(x);
       gs.remove(currentPath.id);
       gs.setState({ currentPath: null });
       newMode = "SELECT";

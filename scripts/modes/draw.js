@@ -37,7 +37,7 @@ export class Drawer {
     this.#draw(event, (x, y) => {
       const temp = new SVGCircle(x, y, 4);
       this.gs.setState({ currentPath: temp });
-      this.svg.appendChild(temp.circle);
+      this.svg.appendChild(temp.node);
     });
   };
   drawLine = (event) => {

@@ -72,7 +72,7 @@ export class Editor {
 
       editPoints.forEach((ePoint) => {
         this.updatedPoints[ePoint.id] = ePoint;
-        this.svg.appendChild(ePoint.circle);
+        this.svg.appendChild(ePoint.node);
         if (ePoint.anchorLine) {
           this.svg.appendChild(ePoint.anchorLine.node);
         }
