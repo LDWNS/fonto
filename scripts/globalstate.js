@@ -142,26 +142,6 @@ class Store {
     if (exitPathMode) this.pathEditor.exit();
   };
 
-  // todo: move to ./classes/timeline.js
-  setActiveTPoint(point) {
-    this.state.timeline.points[this.state.timeline.activePoint].setAttribute(
-      "fill",
-      "transparent"
-    );
-    this.state.frames[point.id] = { ...this.state.frame };
-    this.state.frame = this.state.frames[point.id];
-    this.state.timeline.points[point.id] = point;
-    this.setState({
-      timeline: {
-        ...this.state.timeline,
-        activePoint: point.id,
-        points: this.state.timeline.points,
-      },
-      frames: this.state.frames,
-      frame: this.state.frame,
-    });
-  }
-
   subscribe(listener) {
     this.listeners.push(listener);
   }

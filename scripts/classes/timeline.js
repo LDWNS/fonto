@@ -56,16 +56,37 @@ export class TimeLine {
       case "click":
         const id = event.target.id;
         let targetPoint = this.#gs.state.timeline.points[id];
+        if (targetPoint.id === this.#gs.state.timeline.activePoint) {
+          break;
+        }
         if (!targetPoint) {
           targetPoint = this.addPoint(event);
         }
         targetPoint.setAttribute("fill", "#333");
-        this.#gs.setActiveTPoint(targetPoint);
+        this.#setActiveTPoint(targetPoint);
 
         break;
       default:
         break;
     }
     this.draw();
+  }
+  #setActiveTPoint(point) {
+    this.state.timeline.points[this.state.timeline.activePoint].setAttribute(
+      "fill",
+      "transparent"
+    );
+    this.state.frames[point.id] = { ...this.state.frame };
+    this.state.frame = this.state.frames[point.id];
+    this.state.timeline.points[point.id] = point;
+    this.setState({
+      timeline: {
+        ...this.state.timeline,
+        activePoint: point.id,
+        points: this.state.timeline.points,
+      },
+      frames: this.state.frames,
+      frame: this.state.frame,
+    });
   }
 }
