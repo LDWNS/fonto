@@ -39,6 +39,9 @@ class Store {
       this.state.activeFrame = this.state.frames[firstKey];
     }
     this.timeline.draw();
+    Object.values(this.state.activeFrame).forEach((path) =>
+      this.state.canvas.svg.appendChild(path.node)
+    );
   }
 
   modes = {
@@ -94,15 +97,12 @@ class Store {
         switch (item.type) {
           case "circle":
             newItem = SVGCircle.fromHistory(item);
-            this.state.canvas.svg.appendChild(newItem.node);
             break;
           case "line":
             newItem = SVGLine.fromFrame(item);
-            this.state.canvas.svg.appendChild(newItem.node);
             break;
           case "path":
             newItem = SVGPath.fromHistory(item);
-            this.state.canvas.svg.appendChild(newItem.node);
             break;
           default:
             break;

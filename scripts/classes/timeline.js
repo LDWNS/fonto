@@ -19,6 +19,7 @@ export class TimeLine {
     this.#window = gs.state.timeline.window;
     this.#frames = {};
     gs.subscribe(() => {
+      this.#gs = gs;
       this.#window = gs.state.timeline.window;
       this.#frames = gs.state.frames;
     });
@@ -61,7 +62,7 @@ export class TimeLine {
         const copyFrame = {};
         this.#canvas.innerHTML = "";
         Object.values(this.#gs.state.activeFrame).forEach((path) => {
-          const newId = uid();
+          const newId = path.id + "-cpy";
           copyFrame[newId] = path.copyWithId(newId);
         });
         this.#frames[id] = copyFrame;
@@ -70,6 +71,7 @@ export class TimeLine {
       case "circle":
         newPoint = SVGCircle.fromHistory(event);
         id = newPoint.id;
+        this.#activePoint = id;
         break;
       default:
         id = uid();
@@ -94,7 +96,7 @@ export class TimeLine {
         }
         targetPoint.setAttribute("fill", "#333");
         this.#setActiveTPoint(targetPoint);
-        this.#drawActiveFrame();
+        this.#drawActiveFrame(this.#gs.state.activeFrame);
         break;
       default:
         break;
@@ -108,11 +110,11 @@ export class TimeLine {
     this.#points[point.id] = point;
     this.#activePoint = point.id;
     this.#gs.setState({
-      activeFrame: this.#frames[point.id],
-      frames: this.#frames,
+      activeFrame: this.#gs.state.frames[point.id],
+      frames: this.#gs.state.frames,
     });
   }
-  #drawActiveFrame(frame = this.#gs.state.activeFrame) {
+  #drawActiveFrame(frame) {
     this.#canvas.innerHTML = "";
     Object.values(frame).forEach((path) => {
       this.#canvas.appendChild(path.node);
