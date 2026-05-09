@@ -80,6 +80,11 @@ class Store {
       do: (event) => this.tools.select(event),
       style: { color: "#290" },
     },
+    VIEW: {
+      id: 8,
+      do: (event) => this.tools.view(event),
+      style: { color: "#980" },
+    },
     MOVE: {
       id: 3,
       do: (event) => this.tools.move(event),

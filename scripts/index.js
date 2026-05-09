@@ -38,6 +38,9 @@ document.addEventListener("keydown", (event) => {
     case "c":
       newMode = "CIRCLE";
       break;
+    case "v":
+      newMode = "VIEW";
+      break;
     case "p":
       newMode = "PATH-DRAW";
       break;
