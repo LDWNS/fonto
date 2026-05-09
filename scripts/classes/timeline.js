@@ -5,22 +5,29 @@ import { SVGLine } from "./line.js";
 export class TimeLine {
   #gs;
   #svg;
-  points;
+  #canvas;
+  #points;
+  #activePoint;
+  // state deps
   #window;
+  #frames;
   constructor(gs) {
     this.#gs = gs;
-    this.points = {};
+    this.#points = {};
     this.#svg = gs.state.timeline.svg;
+    this.#canvas = gs.state.canvas.svg;
     this.#window = gs.state.timeline.window;
+    this.#frames = {};
     gs.subscribe(() => {
       this.#window = gs.state.timeline.window;
+      this.#frames = gs.state.frames;
     });
     this.init();
   }
 
   // todo: from storage
   init() {
-    this.points = {
+    this.#points = {
       line: new SVGLine(null, null)
         .setAttribute("stroke", "#333")
         .setAttribute("stroke-width", "1px")
@@ -37,17 +44,41 @@ export class TimeLine {
 
   draw() {
     this.#svg.innerHtml = "";
-    Object.keys(this.points).forEach((key) => {
-      this.#svg.appendChild(this.points[key].node);
+    Object.keys(this.#points).forEach((key) => {
+      this.#svg.appendChild(this.#points[key].node);
     });
   }
   addPoint(event) {
-    const id = uid();
-    const { x } = event ? pointerToSvgCoords(event, this.#window) : { x: 8 };
-    const newPoint = new SVGCircle(x, 8, 5, id)
-      .update({ x, y: 8 })
-      .setAttribute("stroke", "#333");
-    this.points[id] = newPoint;
+    let newPoint;
+    let id;
+    switch (event?.type) {
+      case "click":
+        id = uid();
+        const { x } = pointerToSvgCoords(event, this.#window);
+        newPoint = new SVGCircle(x, 8, 5, id)
+          .update({ x, y: 8 })
+          .setAttribute("stroke", "#333");
+        const copyFrame = {};
+        this.#canvas.innerHTML = "";
+        Object.values(this.#gs.state.activeFrame).forEach((path) => {
+          const newId = uid();
+          copyFrame[newId] = path.copyWithId(newId);
+        });
+        this.#frames[id] = copyFrame;
+        this.#drawActiveFrame(copyFrame);
+        break;
+      case "circle":
+        newPoint = SVGCircle.fromHistory(event);
+        id = newPoint.id;
+        break;
+      default:
+        id = uid();
+        newPoint = new SVGCircle(8, 8, 5, id)
+          .update({ x: 8, y: 8 })
+          .setAttribute("stroke", "#333");
+        this.#activePoint = id;
+    }
+    this.#points[id] = newPoint;
     return newPoint;
   }
 
@@ -55,16 +86,15 @@ export class TimeLine {
     switch (event.type) {
       case "click":
         const id = event.target.id;
-        let targetPoint = this.#gs.state.timeline.points[id];
-        if (targetPoint.id === this.#gs.state.timeline.activePoint) {
-          break;
-        }
+        let targetPoint = this.#points[id];
         if (!targetPoint) {
           targetPoint = this.addPoint(event);
+        } else if (targetPoint?.id === this.#activePoint) {
+          break;
         }
         targetPoint.setAttribute("fill", "#333");
         this.#setActiveTPoint(targetPoint);
-
+        this.#drawActiveFrame();
         break;
       default:
         break;
@@ -72,21 +102,28 @@ export class TimeLine {
     this.draw();
   }
   #setActiveTPoint(point) {
-    this.state.timeline.points[this.state.timeline.activePoint].setAttribute(
-      "fill",
-      "transparent"
-    );
-    this.state.frames[point.id] = { ...this.state.frame };
-    this.state.frame = this.state.frames[point.id];
-    this.state.timeline.points[point.id] = point;
-    this.setState({
-      timeline: {
-        ...this.state.timeline,
-        activePoint: point.id,
-        points: this.state.timeline.points,
-      },
-      frames: this.state.frames,
-      frame: this.state.frame,
+    if (this.#activePoint) {
+      this.#points[this.#activePoint].setAttribute("fill", "transparent");
+    }
+    this.#points[point.id] = point;
+    this.#activePoint = point.id;
+    this.#gs.setState({
+      activeFrame: this.#frames[point.id],
+      frames: this.#frames,
     });
+  }
+  #drawActiveFrame(frame = this.#gs.state.activeFrame) {
+    this.#canvas.innerHTML = "";
+    Object.values(frame).forEach((path) => {
+      this.#canvas.appendChild(path.node);
+    });
+  }
+
+  getActiveTPoint() {
+    return this.#activePoint;
+  }
+
+  getPoints() {
+    return this.#points;
   }
 }

@@ -1,9 +1,9 @@
 export class Tools {
   constructor(gs) {
     this.gs = gs;
-    this.frame = gs.state.frame;
+    this.frame = gs.state.activeFrame;
     gs.subscribe(() => {
-      this.frame = gs.state.frame;
+      this.frame = gs.state.activeFrame;
     });
   }
   select(event) {

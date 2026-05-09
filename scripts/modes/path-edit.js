@@ -50,7 +50,7 @@ export class PathEditor {
     if (!this.#currentPath) {
       const newP = SVGPath.create(x, y);
       this.#gs.setState({ currentPath: newP });
-      this.#svg.appendChild(newP.path);
+      this.#svg.appendChild(newP.node);
       this.#lastClick = { x, y, id: newP.moves[0].id };
     } else {
       if (targetPoint) {

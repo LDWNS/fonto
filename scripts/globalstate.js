@@ -29,14 +29,16 @@ class Store {
     this.state.frames = {};
     // todo: add all points, sets frames & activePoints
     this.#loadFrame(this.state.canvas.svg);
-    if (!this.state.timeline.activePoint) {
+
+    const firstKey = Object.keys(this.state.frames)[0];
+    if (!firstKey) {
       const point = this.timeline.addPoint().setAttribute("fill", "#333");
-      this.state.timeline.activePoint = point.id;
       this.state.frames[point.id] = {};
-      this.timeline.draw();
+      this.state.activeFrame = {};
+    } else {
+      this.state.activeFrame = this.state.frames[firstKey];
     }
-    this.state.timeline.points = this.timeline.points;
-    this.state.frame = this.state.frames[this.state.timeline.activePoint];
+    this.timeline.draw();
   }
 
   modes = {
@@ -91,7 +93,7 @@ class Store {
         let newItem;
         switch (item.type) {
           case "circle":
-            newItem = SVGCircle.fromFrame(item);
+            newItem = SVGCircle.fromHistory(item);
             this.state.canvas.svg.appendChild(newItem.node);
             break;
           case "line":
@@ -99,8 +101,8 @@ class Store {
             this.state.canvas.svg.appendChild(newItem.node);
             break;
           case "path":
-            newItem = SVGPath.fromFrame(item);
-            this.state.canvas.svg.appendChild(newItem.path);
+            newItem = SVGPath.fromHistory(item);
+            this.state.canvas.svg.appendChild(newItem.node);
             break;
           default:
             break;
@@ -112,6 +114,18 @@ class Store {
           this.state.frames[key][newItem.id] = newItem;
         }
       });
+    });
+    if (frames.length === 0) {
+      return;
+    }
+    const tpoints = Object.entries(
+      JSON.parse(localStorage.getItem("tpoints") ?? "{}")
+    );
+    tpoints.forEach(([key, value]) => {
+      if (key === "line") {
+        return;
+      }
+      this.timeline.addPoint(value);
     });
   };
 
@@ -156,18 +170,19 @@ class Store {
   }
   save = (item) => {
     if (item) {
-      this.state.frame[item.id] = item;
+      this.state.activeFrame[item.id] = item;
     }
-    this.state.frames[this.state.timeline.activePoint] = this.state.frame;
+    const activeFrameId = this.timeline.getActiveTPoint();
+    this.state.frames[activeFrameId] = this.state.activeFrame;
     localStorage.setItem("frames", JSON.stringify(this.state.frames));
-    localStorage.setItem("tpoints", JSON.stringify(this.state.timeline));
+    localStorage.setItem("tpoints", JSON.stringify(this.timeline.getPoints()));
     this.listeners.forEach((listener) => listener());
   };
 
   remove = (id) => {
     if (id) {
-      delete this.state.frame[id];
-      this.state.frames[this.state.timeline.activePoint] = this.state.frame;
+      delete this.state.frames[id];
+      // this.state.frames[this.state.timeline.activePoint] = this.state.frame;
     }
     localStorage.setItem("frames", JSON.stringify(frame));
     this.listeners.forEach((listener) => listener());

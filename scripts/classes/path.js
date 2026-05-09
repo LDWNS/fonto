@@ -4,7 +4,7 @@ import { SVGPathElement } from "./pathelement.js";
 export class SVGPath {
   constructor(x, y) {
     this.id = uid();
-    this.path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    this.node = document.createElementNS("http://www.w3.org/2000/svg", "path");
     this.type = "path";
     this.x = x;
     this.y = y;
@@ -22,7 +22,7 @@ export class SVGPath {
     newP.setAttribute("d", this.moveString);
     return newP;
   }
-  static fromFrame(path) {
+  static fromHistory(path) {
     const newC = new SVGPath(path.x, path.y);
     newC.id = path.id;
     newC.moveString = path.moveString;
@@ -44,7 +44,7 @@ export class SVGPath {
     return newC;
   }
   setAttribute(field, value) {
-    this.path.setAttribute(field, value);
+    this.node.setAttribute(field, value);
     this.attributes[field] = value;
     return this;
   }
@@ -121,6 +121,12 @@ export class SVGPath {
       output[el.id] = el.getPoint();
     });
     return output;
+  }
+  copyWithId(newId) {
+    const newPath = SVGPath.fromHistory(JSON.parse(JSON.stringify(this)));
+    newPath.id = newId;
+    newPath.setAttribute("id", newId);
+    return newPath;
   }
   handleKeyEvent(event) {
     if (event.key === "z") {

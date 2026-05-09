@@ -19,7 +19,7 @@ export class SVGCircle {
     this.setAttribute("fill", "none");
     this.setAttribute("id", this.id);
   }
-  static fromFrame(circle) {
+  static fromHistory(circle) {
     const newC = new SVGCircle(circle.x, circle.y, circle.r);
     newC.id = circle.id;
     Object.entries(circle.attributes).forEach(([field, value]) => {
