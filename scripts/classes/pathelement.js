@@ -13,7 +13,9 @@ export class SVGPathElement {
     if (arr[0] === "M" && arr[3] !== undefined) {
       moveIndex = 3;
     }
-    arr.slice(moveIndex + 1).forEach((x) => moves.push(parseFloat(x.replaceAll(/,/g, ""))));
+    arr
+      .slice(moveIndex + 1)
+      .forEach((x) => moves.push(parseFloat(x.replaceAll(/,/g, ""))));
     return new SVGPathElement(arr[moveIndex], moves).linkPrev(prevNode);
   }
   linkPrev(prevNode) {
@@ -23,7 +25,7 @@ export class SVGPathElement {
     }
     return this;
   }
-  toString() {
+  toString({ includeMs } = { includeMs: true }) {
     let output = `${this.type}`;
     const needsCommas = this.list.length > 2;
     for (let i = 0; i < this.list.length / 2; i++) {
@@ -35,10 +37,10 @@ export class SVGPathElement {
     }
     // figma trick
     // todo: fix this
-    // if (this.type !== "M" && this.prevNode) {
-    //   const { x: prevX, y: prevY } = this.prevNode.getPoint();
-    //   output = `M ${prevX} ${prevY} ` + output;
-    // }
+    if (includeMs && this.type !== "M" && this.prevNode) {
+      const { x: prevX, y: prevY } = this.prevNode.getPoint();
+      output = `M ${prevX} ${prevY} ` + output;
+    }
     return output;
   }
   getPoint() {

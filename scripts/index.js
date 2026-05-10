@@ -39,7 +39,10 @@ document.addEventListener("keydown", (event) => {
       newMode = "CIRCLE";
       break;
     case "v":
-      newMode = "VIEW";
+      newMode = mode === "VIEW" ? "SELECT" : "VIEW";
+      if (newMode === "VIEW") {
+        gs.tools.view();
+      }
       break;
     case "p":
       newMode = "PATH-DRAW";
@@ -55,6 +58,7 @@ document.addEventListener("keydown", (event) => {
       break;
     case "w":
       canvas.innerHTML = "";
+      timeline.innerHTML = "";
       localStorage.clear();
       gs.setState({ currentPath: null, svg: canvas });
       break;

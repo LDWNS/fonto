@@ -38,14 +38,14 @@ export class Tools {
         break;
     }
   }
-  view(event) {
-    if (event.type !== "click") {
-      return;
-    }
+  view() {
     // list and order all frames
     const orderedTPoints = Object.values(this.gs.timeline.getPoints())
       .sort((a, b) => a.x - b.x)
       .filter((a) => a.type !== "line");
+    // TODO:
+    //     get first, get last
+    //     then enrich all points with "ms" information (keyTimings)
 
     this.gs.state.canvas.svg.innerHTML = "";
     const animations = {};
@@ -56,7 +56,8 @@ export class Tools {
         const id =
           hyphenIndex === -1 ? path.id : path.id.substring(0, hyphenIndex);
         const moveString =
-          path.moves.map((el) => el.toString()).join(" ") + "Z";
+          path.moves.map((el) => el.toString({ includeMs: false })).join(" ") +
+          "Z";
         if (!animations[id]) {
           animations[id] = { d: "", initState: moveString };
         }

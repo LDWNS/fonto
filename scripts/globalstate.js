@@ -28,15 +28,14 @@ class Store {
 
     this.state.frames = {};
     // todo: add all points, sets frames & activePoints
-    this.#loadFrame(this.state.canvas.svg);
+    this.#loadFrames(this.state.canvas.svg);
 
     const firstKey = Object.keys(this.state.frames)[0];
     if (!firstKey) {
-      const point = this.timeline.addPoint().setAttribute("fill", "#333");
+      const point = this.timeline.addPoint();
       this.state.frames[point.id] = {};
       this.state.activeFrame = {};
-    } else {
-      this.state.activeFrame = this.state.frames[firstKey];
+      this.timeline.setActiveTPoint(point)
     }
     this.timeline.draw();
     Object.values(this.state.activeFrame).forEach((path) =>
@@ -82,7 +81,7 @@ class Store {
     },
     VIEW: {
       id: 8,
-      do: (event) => this.tools.view(event),
+      do: (event) => {},
       style: { color: "#980" },
     },
     MOVE: {
@@ -92,7 +91,7 @@ class Store {
     },
   };
 
-  #loadFrame = () => {
+  #loadFrames = () => {
     const frames = Object.entries(
       JSON.parse(localStorage.getItem("frames") ?? "{}")
     );
@@ -123,15 +122,10 @@ class Store {
     if (frames.length === 0) {
       return;
     }
-    const tpoints = Object.entries(
+    this.timeline.fromHistory(
       JSON.parse(localStorage.getItem("tpoints") ?? "{}")
     );
-    tpoints.forEach(([key, value]) => {
-      if (key === "line") {
-        return;
-      }
-      this.timeline.addPoint(value);
-    });
+    this.state.activeFrame = this.state.frames[this.timeline.getActiveTPoint()];
   };
 
   #updateModeSpan() {
@@ -149,10 +143,15 @@ class Store {
     }
     if (mode === "SELECT") {
       this.state.canvas.svg.classList = ["select-mode"];
+      if (this.state.mode === "VIEW") {
+        this.state.canvas.svg.innerHTML = "";
+        Object.values(this.state.activeFrame).forEach((path) =>
+          this.state.canvas.svg.appendChild(path.node)
+        );
+      }
     } else {
       this.state.canvas.svg.classList = [];
     }
-
     const exitPathMode =
       this.state.mode.includes("PATH") && !mode.includes("PATH");
 

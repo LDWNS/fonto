@@ -26,6 +26,19 @@ export class TimeLine {
     this.init();
   }
 
+  fromHistory(localStorageObject) {
+    const tpoints = Object.entries(localStorageObject);
+    tpoints.forEach(([key, value]) => {
+      if (key === "line") {
+        return;
+      }
+      const tpoint = this.addPoint(value);
+      if (tpoint.attributes["data-active"]) {
+        this.#activePoint = tpoint.id;
+      }
+    });
+  }
+
   // todo: from storage
   init() {
     this.#points = {
@@ -94,21 +107,28 @@ export class TimeLine {
         } else if (targetPoint?.id === this.#activePoint) {
           break;
         }
-        targetPoint.setAttribute("fill", "#333");
-        this.#setActiveTPoint(targetPoint);
+        this.setActiveTPoint(targetPoint);
         this.#drawActiveFrame(this.#gs.state.activeFrame);
+        this.#gs.save();
         break;
       default:
         break;
     }
     this.draw();
   }
-  #setActiveTPoint(point) {
+  setActiveTPoint(point) {
     if (this.#activePoint) {
-      this.#points[this.#activePoint].setAttribute("fill", "transparent");
+      this.#points[this.#activePoint]
+        .setAttribute("data-active", "false")
+        .setAttribute("fill", "transparent");
     }
     this.#points[point.id] = point;
     this.#activePoint = point.id;
+    if (this.#activePoint) {
+      this.#points[this.#activePoint]
+        .setAttribute("data-active", "true")
+        .setAttribute("fill", "#333");
+    }
     this.#gs.setState({
       activeFrame: this.#gs.state.frames[point.id],
       frames: this.#gs.state.frames,
