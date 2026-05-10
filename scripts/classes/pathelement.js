@@ -35,10 +35,10 @@ export class SVGPathElement {
     }
     // figma trick
     // todo: fix this
-    if (this.type !== "M" && this.prevNode) {
-      const { x: prevX, y: prevY } = this.prevNode.getPoint();
-      output = `M ${prevX} ${prevY} ` + output;
-    }
+    // if (this.type !== "M" && this.prevNode) {
+    //   const { x: prevX, y: prevY } = this.prevNode.getPoint();
+    //   output = `M ${prevX} ${prevY} ` + output;
+    // }
     return output;
   }
   getPoint() {

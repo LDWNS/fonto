@@ -55,10 +55,12 @@ export class Tools {
         const hyphenIndex = path.id.indexOf("-");
         const id =
           hyphenIndex === -1 ? path.id : path.id.substring(0, hyphenIndex);
+        const moveString =
+          path.moves.map((el) => el.toString()).join(" ") + "Z";
         if (!animations[id]) {
-          animations[id] = { d: "", initState: path.moveString };
+          animations[id] = { d: "", initState: moveString };
         }
-        animations[id].d += path.moveString + ";";
+        animations[id].d += moveString + ";";
       });
     });
     Object.values(animations).forEach((el) => {
