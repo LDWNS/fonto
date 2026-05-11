@@ -2,6 +2,7 @@ import { Store } from "./globalstate.js";
 
 const canvas = document.querySelector("svg#canvas");
 const timeline = document.querySelector("svg#timeline");
+const input = document.querySelector("textarea");
 
 const { left, top } = canvas.getBoundingClientRect();
 const gs = new Store({
@@ -55,6 +56,13 @@ document.addEventListener("keydown", (event) => {
       break;
     case "s":
       newMode = "SELECT";
+      break;
+    case "i":
+      canvas.classList.toggle("hidden");
+      const isActive = input.classList.toggle("hidden");
+      if (!isActive) {
+        gs.tools.renderInput(input.value);
+      }
       break;
     case "w":
       canvas.innerHTML = "";

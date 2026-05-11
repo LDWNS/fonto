@@ -15,15 +15,19 @@
     - [x] requires mode redesign
     - [x] requires path draw
     - [ ] requires EditPoint redesign
-  - [ ] add edit point to existing path
+  - [x] add edit point to existing path
+  - [x] add edit point to the middle of existing path
   - [ ] add arcs for "rounding corners"
   - [ ] add move functionality
+  - [ ] add scale functionality
+  - [ ] add upper/lower case switch functionality
 - [ ] timeline
-  - [ ] html & css
-  - [ ] create keyframe point 
+  - [x] html & css
+  - [x] create keyframe point 
+  - [ ] add exact keyframes 
   - [ ] remove keyframe point 
   - [ ] move keyframe point 
-  - [ ] play animation 
+  - [x] play animation 
 - [ ] make "canvas" editable
   - [ ] change svg size
   - [ ] change svg zoom level
@@ -33,6 +37,9 @@
   - [ ] convert with opentype.js
   - [ ] create letter by letter approach
 - [ ]
+
+
+- [ ] move tool
 
 ## Bugs
 

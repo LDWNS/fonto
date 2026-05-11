@@ -1,3 +1,12 @@
+.hidden {
+  display: none;
+}
+textarea {
+  height: 500px;
+  width: 500px;
+  background-color: #f2f2f2;
+  border: solid 1px #fff;
+}
 body {
   margin: 0;
   display: flex;
@@ -20,8 +29,7 @@ canvas {
 svg#canvas {
   border: 1px solid #fff;
   line,
-  circle:not([data-edit]),
-  path {
+  circle:not([data-edit]) {
     stroke-width: 3px;
   }
   &.select-mode {

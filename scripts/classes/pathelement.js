@@ -7,16 +7,19 @@ export class SVGPathElement {
     this.list = list;
   }
   static fromString(str, prevNode) {
-    const arr = str?.trim().split(" ") ?? [];
+    const [type, coords] =
+      str
+        ?.trim()
+        .split(/([a-zA-Z] ?)([-\d. ]*)/)
+        .filter((el) => el.length > 0) ?? [];
+    // todo: parse all lowercase to uppercase
     const moves = [];
-    let moveIndex = 0;
-    if (arr[0] === "M" && arr[3] !== undefined) {
-      moveIndex = 3;
+    if (coords) {
+      coords
+        .matchAll(/-?\d*\.?\d+/g)
+        .forEach((x) => moves.push(parseFloat(x[0])));
     }
-    arr
-      .slice(moveIndex + 1)
-      .forEach((x) => moves.push(parseFloat(x.replaceAll(/,/g, ""))));
-    return new SVGPathElement(arr[moveIndex], moves).linkPrev(prevNode);
+    return new SVGPathElement(type, moves).linkPrev(prevNode);
   }
   linkPrev(prevNode) {
     if (prevNode) {
@@ -25,15 +28,12 @@ export class SVGPathElement {
     }
     return this;
   }
-  toString({ includeMs } = { includeMs: true }) {
+  toString({ includeMs } = { includeMs: false }) {
     let output = `${this.type}`;
-    const needsCommas = this.list.length > 2;
     for (let i = 0; i < this.list.length / 2; i++) {
       const a = i * 2;
       const b = a + 1;
-      output += ` ${this.list[a]} ${this.list[b]}${
-        needsCommas && b + 1 < this.list.length ? "," : " "
-      }`;
+      output += ` ${this.list[a]} ${this.list[b] ?? ""} `;
     }
     // figma trick
     // todo: fix this
@@ -45,6 +45,7 @@ export class SVGPathElement {
   }
   getPoint() {
     switch (this.type) {
+      case "z":
       case "Z":
         console.error("getPoint was called on Z");
         break;
@@ -61,13 +62,29 @@ export class SVGPathElement {
           y: this.list[5],
           x: this.list[4],
         };
+      case "V":
+        return { id: this.id, x: this.prevNode.getX(), y: this.list[0] };
+      case "H":
+        return { id: this.id, x: this.list[0], y: this.prevNode.getY() };
+      case "A":
+        return { id: this.id, x: this.list[5], y: this.list[6] };
+      default:
+        console.error("PathElement: unknown type: " + this.type);
     }
+  }
+  getX() {
+    return this.getPoint().x;
+  }
+  getY() {
+    return this.getPoint().y;
   }
   toggleType(info) {
     let x, y;
     switch (this.type) {
       case "M":
       case "Z":
+      case "H":
+      case "V":
         break;
       case "L":
         this.type = "C";
@@ -116,6 +133,12 @@ export class SVGPathElement {
       case "C":
         this.list[4] = x;
         this.list[5] = y;
+        break;
+      case "H":
+        this.list[0] = x;
+        break;
+      case "V":
+        this.list[0] = y;
         break;
       case "Z":
         break;

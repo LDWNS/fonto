@@ -31,7 +31,9 @@ export class SVGPath {
       newC.setAttribute(field, value);
     });
     newC.moves = [];
-    const split = newC.moveString.split(/ (?=[M])/);
+    const split = newC.moveString
+      .split(/([a-zA-Z] {0,1}[-\d. ]*)/)
+      .filter((el) => el.length > 0);
     for (let i = 0; i < split.length; i++) {
       newC.moves.push(
         SVGPathElement.fromString(
