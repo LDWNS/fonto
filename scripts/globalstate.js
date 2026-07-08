@@ -35,7 +35,7 @@ class Store {
       const point = this.timeline.addPoint();
       this.state.frames[point.id] = {};
       this.state.activeFrame = {};
-      this.timeline.setActiveTPoint(point)
+      this.timeline.setActiveTPoint(point);
     }
     this.timeline.draw();
     Object.values(this.state.activeFrame).forEach((path) =>
@@ -87,6 +87,16 @@ class Store {
     MOVE: {
       id: 3,
       do: (event) => this.tools.move(event),
+      style: { color: "#029" },
+    },
+    SCALE: {
+      id: 32,
+      do: (event) => this.tools.scale(event),
+      style: { color: "#029" },
+    },
+    GROUP: {
+      id: 33,
+      do: (event) => this.tools.group(event),
       style: { color: "#029" },
     },
   };
@@ -145,9 +155,13 @@ class Store {
       this.state.canvas.svg.classList = ["select-mode"];
       if (this.state.mode === "VIEW") {
         this.state.canvas.svg.innerHTML = "";
-        Object.values(this.state.activeFrame).forEach((path) =>
-          this.state.canvas.svg.appendChild(path.node)
-        );
+        Object.values(this.state.activeFrame).forEach((path) => {
+          if (!path.id) {
+            //probably "groups"
+            return;
+          }
+          this.state.canvas.svg.appendChild(path.node);
+        });
       }
     } else {
       this.state.canvas.svg.classList = [];
