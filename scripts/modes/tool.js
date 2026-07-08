@@ -1,6 +1,6 @@
 import { SVGPath } from "../classes/path.js";
 import { SVGPathElement } from "../classes/pathelement.js";
-import { pointerToSvgCoords } from "../helper.js";
+import { distance, pointerToSvgCoords, uid } from "../helper.js";
 
 export class Tools {
   constructor(gs) {
@@ -10,6 +10,7 @@ export class Tools {
       this.frame = gs.state.activeFrame;
     });
   }
+  #groupIds = [];
   select(event) {
     switch (event.type) {
       case "click":
@@ -41,6 +42,8 @@ export class Tools {
     }
   }
   renderInput(value) {
+    const frame = {};
+    this.gs.state.canvas.svg.innerHTML = "";
     // todo: add animation rendering
     // todo: make this safe: https://developer.mozilla.org/en-US/docs/Web/API/DOMParser/parseFromString
     const parser = new DOMParser();
@@ -49,13 +52,16 @@ export class Tools {
     paths.forEach((p) => {
       const d = p.getAttribute("d");
       const [_, x, y] = d.match(/^M *([0-9.]+) ([0-9.]+)/);
-      const newP = new SVGPath(parseInt(x), parseInt(y)).setAttribute(
+      const newP = new SVGPath(parseInt(x), parseInt(y), p.getAttribute("id")).setAttribute(
         "stroke",
         "none"
       );
       newP.moveString = d;
       newP.moves = [];
       Object.values(p.attributes).forEach(({ nodeName, nodeValue }) => {
+        // if (nodeName === "id") {
+        //   return;
+        // }
         newP.setAttribute(nodeName, nodeValue);
       });
       const split = newP.moveString
@@ -70,13 +76,16 @@ export class Tools {
         );
       }
       console.log(newP);
-      this.frame[newP.id] = newP;
+
+      frame[newP.id] = newP;
       this.gs.state.canvas.svg.appendChild(newP.node);
       // Object.values(doc.querySelector("svg").attributes).forEach(
       //   ({ nodeName, nodeValue }) =>
       //     this.gs.state.canvas.svg.setAttribute(nodeName, nodeValue)
       // );
     });
+    this.gs.state.frames[this.gs.timeline.getActiveTPoint()] = frame;
+    this.gs.state.activeFrame = frame;
   }
   view() {
     // list and order all frames
@@ -91,7 +100,12 @@ export class Tools {
     const animations = {};
     orderedTPoints.forEach((tpoint) => {
       const frame = this.gs.state.frames[tpoint.id];
-      Object.values(frame).forEach((path) => {
+      const paths = Object.values(frame);
+      paths.forEach((path) => {
+        if (!path.id) {
+          // it's probably "groups"
+          return;
+        }
         const hyphenIndex = path.id.indexOf("-");
         const id =
           hyphenIndex === -1 ? path.id : path.id.substring(0, hyphenIndex);
@@ -131,26 +145,134 @@ export class Tools {
       });
     });
   }
-  move(event) {
+  group(event) {
     let target = this.frame[event.target?.id];
-    if (!target) {
+    if (!target || event.type !== "click") {
       return;
     }
-    const newCoords = pointerToSvgCoords(event);
+    const groups = this.frame.groups ?? {};
+    const activeGroup = this.gs.state.activeGroup ?? { id: uid() };
+    const isInActiveGroup = Object.keys(activeGroup).includes(target.id);
+    if (isInActiveGroup) {
+      delete activeGroup[target.id];
+      this.frame[event.target?.id].setAttribute("data-group", null);
+      let pNode = this.gs.state.canvas.svg.querySelector(`#${target.id}`);
+      const gNode = this.gs.state.canvas.svg.querySelector(
+        `#${activeGroup.id}`
+      );
+      pNode = gNode.removeChild(pNode);
+      this.gs.state.canvas.svg.appendChild(pNode);
+      if (Object.keys(activeGroup).length === 1) {
+        delete groups[activeGroup.id];
+        this.gs.state.canvas.svg.removeChild(gNode);
+      }
+    } else {
+      activeGroup[target.id] = target;
+      this.frame[event.target?.id].setAttribute("data-group", activeGroup.id);
+      let pNode = this.gs.state.canvas.svg.querySelector(`#${target.id}`);
+      let gNode = this.gs.state.canvas.svg.querySelector(`#${activeGroup.id}`);
+      if (!gNode) {
+        gNode = document.createElementNS("http://www.w3.org/2000/svg", "g");
+        gNode.setAttribute("id", activeGroup.id);
+        this.gs.state.canvas.svg.appendChild(gNode);
+      }
+      pNode = this.gs.state.canvas.svg.removeChild(pNode);
+      gNode.appendChild(pNode);
+      groups[activeGroup.id] = activeGroup;
+    }
+    this.frame.groups = groups;
+    this.gs.setState({
+      frame: {
+        ...this.frame,
+        groups: groups,
+      },
+      activeGroup: activeGroup,
+    });
+  }
+  #lastClick;
+  move(event) {
+    const coords = pointerToSvgCoords(event, this.gs.state.canvas.window);
     switch (event.type) {
       case "mousedown":
-        this.gs.setState({ currentPath: target });
+        let target = this.frame[event.target?.id];
+        if (!target) {
+          return;
+        }
+        const groupId = event.target.getAttribute("data-group");
+        if (!groupId) {
+          return;
+        }
+        // toggle relative
+        this.gs.setState({ currentGroup: this.frame.groups[groupId] });
+        this.#lastClick = coords;
         break;
       case "mousemove":
-        if (this.gs.currentPath) {
-          // todo: finish move
-          target.currentPath.move(newCoords, () => {});
+        if (this.gs.state.currentGroup) {
+          console.log(
+            coords.x - this.#lastClick.x,
+            coords.y - this.#lastClick.y
+          );
         }
         break;
       case "mouseup":
-        if (this.gs.currentPath) {
-          this.gs.setState({ currentPath: null });
+        if (this.gs.state.currentGroup) {
+          Object.entries(this.gs.state.currentGroup).forEach(([key, value]) => {
+            if (key === "id") {
+              return;
+            }
+            value.move(
+              coords.x - this.#lastClick.x,
+              coords.y - this.#lastClick.y
+            );
+          });
+          this.#lastClick = null;
         }
+        this.gs.setState({ currentGroup: null });
+        break;
+    }
+  }
+  scale(event) {
+    const coords = pointerToSvgCoords(event, this.gs.state.canvas.window);
+    switch (event.type) {
+      case "mousedown":
+        let target = this.frame[event.target?.id];
+        if (!target) {
+          return;
+        }
+        const groupId = event.target.getAttribute("data-group");
+        if (!groupId) {
+          return;
+        }
+        // toggle relative
+        this.gs.setState({ currentGroup: this.frame.groups[groupId] });
+        this.#lastClick = coords;
+        break;
+      case "mousemove":
+        if (this.gs.state.currentGroup) {
+          console.log(
+            coords.x - this.#lastClick.x,
+            coords.y - this.#lastClick.y
+          );
+        }
+        break;
+      case "mouseup":
+        if (this.gs.state.currentGroup) {
+          Object.entries(this.gs.state.currentGroup).forEach(([key, value]) => {
+            if (key === "id") {
+              return;
+            }
+            const factor =
+              distance({
+                x1: this.#lastClick.x,
+                y1: this.#lastClick.y,
+                x2: coords.x,
+                y2: coords.y,
+              }) / 100;
+            value.scale(factor);
+          });
+          this.#lastClick = null;
+        }
+        this.gs.setState({ currentGroup: null });
         break;
     }
   }
