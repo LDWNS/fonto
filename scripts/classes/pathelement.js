@@ -19,7 +19,7 @@ export class SVGPathElement {
         .matchAll(/-?\d*\.?\d+/g)
         .forEach((x) => moves.push(parseFloat(x[0])));
     }
-    return new SVGPathElement(type, moves).linkPrev(prevNode);
+    return new SVGPathElement(type.trim(), moves).linkPrev(prevNode);
   }
   linkPrev(prevNode) {
     if (prevNode) {
@@ -44,7 +44,7 @@ export class SVGPathElement {
     return output;
   }
   getPoint() {
-    switch (this.type) {
+    switch (this.type.trim()) {
       case "z":
       case "Z":
         console.error("getPoint was called on Z");
@@ -122,6 +122,45 @@ export class SVGPathElement {
     this.list[index * 2] += dx;
     this.list[index * 2 + 1] += dy;
   }
+  move(dx, dy) {
+    switch (this.type) {
+      case "A":
+        break;
+      case "H":
+        this.list[0] += dx;
+        break;
+      case "V":
+        this.list[0] += dy;
+        break;
+      case "M":
+      case "L":
+      case "C":
+        this.list = this.list.map((v, i) => {
+          return v + (i % 2 === 0 ? dx : dy);
+        });
+        break;
+    }
+  }
+  // todo: non-aspect-ratio-maintaining scaling
+  scale(factor) {
+    switch (this.type) {
+      case "A":
+        break;
+      case "H":
+        this.list[0] *= factor;
+        break;
+      case "V":
+        this.list[0] *= factor;
+        break;
+      case "M":
+      case "L":
+      case "C":
+        this.list = this.list.map((v) => {
+          return v * factor;
+        });
+        break;
+    }
+  }
 
   setOrigin(x, y) {
     switch (this.type) {
@@ -133,6 +172,10 @@ export class SVGPathElement {
       case "C":
         this.list[4] = x;
         this.list[5] = y;
+        break;
+      case "A":
+        this.list[5] = x;
+        this.list[6] = y;
         break;
       case "H":
         this.list[0] = x;
