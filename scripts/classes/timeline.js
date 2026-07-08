@@ -75,6 +75,10 @@ export class TimeLine {
         const copyFrame = {};
         this.#canvas.innerHTML = "";
         Object.values(this.#gs.state.activeFrame).forEach((path) => {
+          if (!path.id) {
+            // probably "groups"
+            return;
+          }
           const newId = path.id + "-cpy";
           copyFrame[newId] = path.copyWithId(newId);
         });
@@ -137,6 +141,10 @@ export class TimeLine {
   #drawActiveFrame(frame) {
     this.#canvas.innerHTML = "";
     Object.values(frame).forEach((path) => {
+      if (!path.id) {
+        // probably "groups"
+        return;
+      }
       this.#canvas.appendChild(path.node);
     });
   }
