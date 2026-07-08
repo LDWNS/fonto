@@ -26,6 +26,15 @@ canvas {
   position: relative;
   z-index: 1;
 }
+g {
+  path {
+    stroke: #661212;
+    fill: #661212;
+  }
+}
+[data-point] {
+  cursor: grab;
+}
 svg#canvas {
   border: 1px solid #fff;
   line,
