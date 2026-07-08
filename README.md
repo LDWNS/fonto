@@ -18,8 +18,8 @@
   - [x] add edit point to existing path
   - [x] add edit point to the middle of existing path
   - [ ] add arcs for "rounding corners"
-  - [ ] add move functionality
-  - [ ] add scale functionality
+  - [x] add move functionality
+  - [x] add scale functionality
   - [ ] add upper/lower case switch functionality
 - [ ] timeline
   - [x] html & css
