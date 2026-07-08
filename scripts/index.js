@@ -54,14 +54,23 @@ document.addEventListener("keydown", (event) => {
     case "m":
       newMode = "MOVE";
       break;
+    case "S":
+      newMode = "SCALE";
+      break;
+    case "g":
+      newMode = "GROUP";
+      break;
     case "s":
       newMode = "SELECT";
       break;
     case "i":
-      canvas.classList.toggle("hidden");
-      const isActive = input.classList.toggle("hidden");
-      if (!isActive) {
+      const isHidden = input.classList.toggle("hidden");
+      if (isHidden) {
+        canvas.classList.remove("hidden");
         gs.tools.renderInput(input.value);
+      } else {
+        input.value = canvas.outerHTML;
+        canvas.classList.add("hidden");
       }
       break;
     case "w":
@@ -81,7 +90,7 @@ document.addEventListener("keydown", (event) => {
       newMode = "SELECT";
       break;
   }
-  if (newMode) {
+  if (newMode && !event.altKey && !event.ctrlKey && !event.metaKey) {
     gs.setMode({ mode: newMode });
   } else {
     modes[mode].do(event);
