@@ -2,8 +2,8 @@ import { uid } from "../helper.js";
 import { SVGPathElement } from "./pathelement.js";
 
 export class SVGPath {
-  constructor(x, y) {
-    this.id = uid();
+  constructor(x, y, id = uid()) {
+    this.id = id;
     this.node = document.createElementNS("http://www.w3.org/2000/svg", "path");
     this.type = "path";
     this.x = x;
@@ -50,6 +50,9 @@ export class SVGPath {
     this.attributes[field] = value;
     return this;
   }
+  getAttribute(field, value) {
+    return (this.attributes[field] = value);
+  }
   #getLastM(zIndex = this.moves.length) {
     let x, y;
     for (let i = zIndex - 1; i >= 0; i--) {
@@ -95,6 +98,16 @@ export class SVGPath {
       return item;
     });
     this.moveString = this.moves.join(" ");
+    this.setAttribute("d", this.moveString);
+  }
+  move(dx, dy) {
+    this.moves.forEach((move) => move.type !== "Z" && move.move(dx, dy));
+    this.moveString = this.moves.map((move) => move.toString()).join(" ");
+    this.setAttribute("d", this.moveString);
+  }
+  scale(factor) {
+    this.moves.forEach((move) => move.type !== "Z" && move.scale(factor));
+    this.moveString = this.moves.map((move) => move.toString()).join(" ");
     this.setAttribute("d", this.moveString);
   }
   editNode({ id }) {
