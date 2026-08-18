@@ -75,8 +75,6 @@ export class Tools {
           )
         );
       }
-      console.log(newP);
-
       frame[newP.id] = newP;
       this.gs.state.canvas.svg.appendChild(newP.node);
       // Object.values(doc.querySelector("svg").attributes).forEach(

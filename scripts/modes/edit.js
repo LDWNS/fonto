@@ -48,6 +48,7 @@ export class Editor {
       const dy = y - this.movingPoint.y;
       this.movingPoint.setOrigin({ x, y }).update({ x, y }, () => {});
       this.movingPoint.updateAnchoredPoints(dx, dy);
+
       this.currentPath.edit(
         { x, y, dx, dy, id: this.movingPoint.attributes["data-point"] },
         (item) => this.gs.save(item)
