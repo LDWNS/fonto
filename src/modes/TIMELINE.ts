@@ -95,8 +95,11 @@ const ENTER: KeydownInputHandler = {
   type: "keydown",
   keyCode: "Enter",
   validator: (e, _) => e.target instanceof HTMLInputElement,
-  handler: (e, __) => {
+  handler: (e, s) => {
     duration = parseInt((e.target as HTMLInputElement).value);
+    if (s.data["bottom-bar"]) {
+      s.data["bottom-bar"].duration = duration;
+    }
     (
       document.querySelector("#animationDuration") as HTMLElement
     ).innerText = `${duration}ms`;
