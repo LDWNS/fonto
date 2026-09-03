@@ -1,5 +1,6 @@
 import { createSVGFrame } from "../framecreator";
 import { pointerToSvgCoords } from "../helper";
+import { ESC } from "../keyhelper";
 import { createLine } from "../shapes/line";
 import type {
   ClickInputHandler,
@@ -51,16 +52,10 @@ const CLICK: ClickInputHandler = {
     }
   },
 };
-const ESC: KeydownInputHandler = {
-  type: "keydown",
-  keyCode: "Escape",
-  desc: "switch mode -> NEUTRAL",
-  handler: (_, s) => s.setActiveModeId("NEUTRAL"),
-};
 const L: KeydownInputHandler = {
   type: "keydown",
-  keyCode: "S-l",
-  desc: "switch mode -> EDIT_LINE",
+  keyCode: "e",
+  desc: "EDIT_LINE",
   handler: (_, s) => s.setActiveModeId("EDIT_LINE"),
 };
 

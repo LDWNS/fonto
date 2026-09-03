@@ -1,4 +1,4 @@
-import type { EditableSVGElement } from "./geometry";
+import type { Coord, EditableSVGElement, EditPoint } from "./geometry";
 import type { InputHandler, LifeCycleHandlers } from "./handlermethods";
 
 export type Mode = {
@@ -21,8 +21,9 @@ export interface TimeLineData {
   keyframes?: TimeLineFrame[];
 }
 export interface TimeLineFrame {
+  update(projCoord?: Coord): void;
   id: string;
   x: number;
-  point: SVGCircleElement;
+  point: EditPoint;
   children: EditableSVGElement[];
 }

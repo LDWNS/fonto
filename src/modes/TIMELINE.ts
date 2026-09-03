@@ -1,15 +1,29 @@
 import { createTimelineFrame } from "../framecreator";
-import { isEditableSVGElement, pointerToSvgCoords, toast } from "../helper";
-import { createCircle, setCircleMethods } from "../shapes/circle";
+import {
+  isEditableSVGElement,
+  isEditPoint,
+  pointerToSvgCoords,
+  toast,
+  uid,
+} from "../helper";
+import { setCircleMethods } from "../shapes/circle";
+import { createEditPoint } from "../shapes/editpoint";
 import { setLineMethods } from "../shapes/line";
 import { setPathMethods } from "../shapes/path";
 import type {
   ClickInputHandler,
+  Coord,
+  DblClickInputHandler,
   EditableSVGElement,
+  EditPoint,
   KeydownInputHandler,
   Mode,
+  MousedownInputHandler,
+  MousemoveInputHandler,
+  MouseupInputHandler,
   TimeLineFrame,
 } from "../types";
+import { EditPointType } from "../types/geometry";
 
 let currentKeyframe: TimeLineFrame;
 const keyframes: TimeLineFrame[] = [];
@@ -22,36 +36,26 @@ const toggleDurationInput = () => {
     (animationDurationInput as HTMLElement).focus();
   }
 };
-const CLICK: ClickInputHandler = {
-  type: "click",
-  validator: (e, s) =>
-    s.activeBottomBarMode.frame.contains(e.target as SVGElement | HTMLElement),
+let movingPoint: EditPoint | null;
+
+const MOVE: MousemoveInputHandler = {
+  type: "mousemove",
+  desc: "move keyframe",
+  validator: (e, _) => e.target instanceof SVGElement && !!movingPoint,
   handler: (e, s) => {
-    if ((e.target as HTMLElement).id === "animationDuration") {
-      toggleDurationInput();
-      return;
-    }
-    if (e.target instanceof SVGCircleElement) {
-      saveState(s.activeMainFrameMode);
-      currentKeyframe.point.classList.remove("active");
-      currentKeyframe = keyframes.find(
-        (k) => k.id === (e.target as SVGCircleElement).id
-      )!;
-    } else if (e.target instanceof SVGElement) {
-      const projCoords = pointerToSvgCoords(
-        e,
-        s.activeBottomBarMode.frame.getBoundingClientRect()
-      );
-      const newChildren: EditableSVGElement[] = saveState(
-        s.activeMainFrameMode
-      );
-      currentKeyframe.point.classList.remove("active");
-      currentKeyframe = createKeyframePoint(
-        projCoords.x,
-        s.activeBottomBarMode,
-        newChildren
-      );
-    }
+    const rect = s.activeMainFrameMode.frame.getBoundingClientRect();
+    currentKeyframe.update(pointerToSvgCoords(e, rect));
+    return;
+  },
+};
+const mousedown: MousedownInputHandler = {
+  type: "mousedown",
+  validator: (e, _) => isEditPoint(e.target),
+  handler: (e, s) => {
+    saveState(s.activeMainFrameMode);
+    currentKeyframe.point.classList.remove("active");
+    movingPoint = e.target as EditPoint;
+    currentKeyframe = keyframes.find((k) => k.id === movingPoint!.targetId)!;
     currentKeyframe.point.classList.add("active");
     s.activeMainFrameMode.frame.textContent = "";
     currentKeyframe.children.forEach((child) =>
@@ -59,6 +63,49 @@ const CLICK: ClickInputHandler = {
     );
     s.data["svg-canvas"] = currentKeyframe.children;
     s.data["bottom-bar"] = { duration: duration, keyframes: keyframes };
+  },
+};
+const mouseup: MouseupInputHandler = {
+  type: "mouseup",
+  validator: (e, _) => e.target instanceof SVGElement && !!movingPoint,
+  handler: (_, __) => {
+    movingPoint = null;
+  },
+};
+
+const doubleClick: DblClickInputHandler = {
+  type: "dblclick",
+  desc: "add keyframe",
+  validator: (e, _) => e.target instanceof SVGElement,
+  handler: (e, s) => {
+    const projCoords = pointerToSvgCoords(
+      e,
+      s.activeBottomBarMode.frame.getBoundingClientRect()
+    );
+    const newChildren: EditableSVGElement[] = saveState(s.activeMainFrameMode);
+    currentKeyframe.point.classList.remove("active");
+    currentKeyframe = createKeyframePoint(
+      projCoords.x,
+      s.activeBottomBarMode,
+      newChildren
+    );
+    currentKeyframe.point.classList.add("active");
+    s.activeMainFrameMode.frame.textContent = "";
+    currentKeyframe.children.forEach((child) =>
+      s.activeMainFrameMode.frame.appendChild(child)
+    );
+    s.data["svg-canvas"] = currentKeyframe.children;
+    s.data["bottom-bar"] = { duration: duration, keyframes: keyframes };
+  },
+};
+const CLICK: ClickInputHandler = {
+  type: "click",
+  validator: (e, _) => !isEditPoint(e.target),
+  handler: (e, _) => {
+    if ((e.target as HTMLElement).id === "animationDuration") {
+      toggleDurationInput();
+      return;
+    }
   },
 };
 function saveState(m: Mode) {
@@ -104,11 +151,12 @@ const ENTER: KeydownInputHandler = {
       document.querySelector("#animationDuration") as HTMLElement
     ).innerText = `${duration}ms`;
     toggleDurationInput();
+    keyframes.forEach((k) => k.update());
   },
 };
 const ESC: KeydownInputHandler = {
   type: "keydown",
-  keyCode: "Escape",
+  keyCode: "esc",
   validator: (e, _) => e.target instanceof HTMLInputElement,
   handler: (e, __) => {
     (e.target as HTMLInputElement).value = `${duration}`;
@@ -121,33 +169,51 @@ const createKeyframePoint = (
   children: EditableSVGElement[]
 ) => {
   const svg = mode.frame.querySelector("svg");
-  const circle = createCircle({
-    x1: x,
-    y1: 8,
-    x2: x + 3,
-    y2: 11,
-  });
-  circle.classList.add("point");
-  svg?.appendChild(circle);
+  const ep = createEditPoint(EditPointType.TIMELINE, uid(), { x: x, y: 8 }, 4);
+  ep.id = ep.targetId;
+  ep.classList.add("point");
+  svg?.appendChild(ep);
+  ep.toggleAnchorText("");
+  svg?.appendChild(ep.anchorText!);
   const point: TimeLineFrame = {
-    id: circle.id,
+    id: ep.id,
     x: x,
-    point: circle,
+    point: ep,
     children: children,
+    update: function (this: TimeLineFrame, projCoords?: Coord) {
+      if (projCoords) {
+        const clampedX = clampX(projCoords.x);
+        this.x = clampedX - 5;
+        this.point.update({ x1: clampedX });
+      }
+      this.point.anchorText!.textContent = `${mapCoordsToTimeline(this.x)}`;
+      this.point.anchorText?.setAttribute(
+        "x",
+        `${this.x + 5 - 3 * this.point.anchorText!.textContent.length}`
+      );
+    },
   };
   keyframes.push(point);
+  point.update({ x: x, y: 8 });
   return point;
 };
+
+function clampX(x: number) {
+  return Math.min(Math.max(x, 5), 420);
+}
+function mapCoordsToTimeline(x: number) {
+  return Math.round((x / 415) * duration);
+}
 
 let duration = 5000;
 const frame = createTimelineFrame(duration);
 export const TIMELINE: Mode = {
   name: "TIMELINE",
   frame: frame,
-  inputHandlers: [CLICK, ENTER, ESC],
+  inputHandlers: [CLICK, ENTER, ESC, mousedown, mouseup, MOVE, doubleClick],
   events: {
     modeEnter(s) {
-      currentKeyframe = createKeyframePoint(0, s.activeBottomBarMode, []);
+      currentKeyframe = createKeyframePoint(5, s.activeBottomBarMode, []);
       currentKeyframe.point.classList.add("active");
     },
   },

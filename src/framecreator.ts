@@ -1,4 +1,6 @@
 import DOMPurify from "dompurify";
+import { uid } from "./helper";
+import type { Coord } from "./types";
 export function createSVGFrame() {
   const frame = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   frame.setAttribute("id", "svg-canvas");
@@ -19,12 +21,12 @@ export function createTextAreaFrame() {
 const timelineSVG = DOMPurify.sanitize(
   `<svg 
           id="timeline"
-          xmlns="http://www.w3.org/2000/svg" width="420" height="15">
+          xmlns="http://www.w3.org/2000/svg" width="420" height="25">
           <defs>
             <marker
               id="tick"
               viewBox="0 0 2 10"
-              refX=".5"
+              refX="1"
               refY="5"
               markerUnits="strokeWidth"
               markerWidth="2"
@@ -35,7 +37,7 @@ const timelineSVG = DOMPurify.sanitize(
             <marker
               id="arrow"
               viewBox="0 0 10 10"
-              refX="10"
+              refX="5"
               refY="5"
               markerUnits="strokeWidth"
               markerWidth="10"
@@ -48,17 +50,15 @@ const timelineSVG = DOMPurify.sanitize(
             </marker>
           </defs>
           <line 
-            x1="0" 
+            x1="5" 
             y1="8" 
-            x2="420" 
+            x2="415" 
             y2="8" 
             stroke="#333" 
             stroke-width="1.5px"
             marker-start="url(#tick)"
             marker-end="url(#arrow)"
             ></line>
-          <text x="10" y="13" stroke="var(--background)" stroke-width="2px" style="font-weight: bold">Timeline</text>
-          <text x="10" y="13" stroke="#333">Timeline</text>
         </svg>`,
   {
     USE_PROFILES: { svg: true, svgFilters: true },
@@ -97,4 +97,15 @@ export function createTimelineFrame(duration: number) {
   div.appendChild(span);
   div.appendChild(inputField);
   return div;
+}
+export function createText(initCoord: Coord) {
+  let text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+
+  text.id = uid();
+  text.setAttribute("x", `${initCoord.x}`);
+  text.setAttribute("y", `${initCoord.y}`);
+  text.setAttribute("stroke", "#333");
+  text.setAttribute("fill", "#333");
+
+  return text;
 }

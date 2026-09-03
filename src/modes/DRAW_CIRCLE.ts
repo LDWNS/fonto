@@ -1,10 +1,10 @@
 import { createSVGFrame } from "../framecreator";
 import { pointerToSvgCoords } from "../helper";
+import { ESC } from "../keyhelper";
 import { createCircle } from "../shapes/circle";
 import type {
   ClickInputHandler,
   Coord,
-  KeydownInputHandler,
   MousemoveInputHandler,
 } from "../types";
 import type { Mode } from "../types/mode";
@@ -50,12 +50,6 @@ const CLICK: ClickInputHandler = {
       currentCircle = null;
     }
   },
-};
-const ESC: KeydownInputHandler = {
-  type: "keydown",
-  keyCode: "Escape",
-  desc: "switch mode -> NEUTRAL",
-  handler: (_, s) => s.setActiveModeId("NEUTRAL"),
 };
 
 const frame = createSVGFrame();

@@ -34,7 +34,16 @@ const eventToKeyCode = ({
   if (altKey) prefix += "a-";
   if (ctrlKey) prefix += "c-";
   if (shiftKey) prefix += "s-";
-  return `${prefix}${key.toLowerCase()}`;
+  key = key.toLowerCase();
+  switch (key) {
+    case " ":
+      key = "spc";
+      break;
+    case "escape":
+      key = "esc";
+      break;
+  }
+  return `${prefix}${key}`;
 };
 
 const toastEl = document.querySelector("p#toast") as HTMLElement;
@@ -69,7 +78,12 @@ function pathSegmentToString(ps: SVGPathSegment): string {
       return `${ps.type} ${ps.coords.x1} ${ps.coords.y1} ${ps.coords.x2} ${ps.coords.y2} ${ps.coords.x} ${ps.coords.y}`;
   }
 }
-function createAnimateNode(attributeName: string, values: string, duration: string) {
+function createAnimateNode(
+  attributeName: string,
+  values: string,
+  duration: string,
+  keyTimes: string
+) {
   const animateNode = document.createElementNS(
     "http://www.w3.org/2000/svg",
     "animate"
@@ -77,7 +91,9 @@ function createAnimateNode(attributeName: string, values: string, duration: stri
   animateNode.setAttribute("attributeName", attributeName);
   animateNode.setAttribute("values", values);
   animateNode.setAttribute("dur", duration);
-  animateNode.setAttribute("repeatCount", "indefinite");
+  animateNode.setAttribute("keyTimes", keyTimes);
+  animateNode.setAttribute("fill", "freeze");
+  animateNode.setAttribute("begin", "0s");
   return animateNode;
 }
 
@@ -91,5 +107,5 @@ export {
   isEditPoint,
   isEditableSVGElement,
   pathSegmentToString,
-  createAnimateNode
+  createAnimateNode,
 };

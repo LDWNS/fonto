@@ -78,6 +78,7 @@ function createAnimation(
   circleNode.setAttribute("cx", this.initCx);
   circleNode.setAttribute("cy", this.initCy);
   circleNode.setAttribute("r", this.initR);
+  circleNode.setAttribute("keyTimes", this.keyTimes);
   circleNode.appendChild(createAnimateNode("cx", this.cx, duration));
   circleNode.appendChild(createAnimateNode("cy", this.cy, duration));
   circleNode.appendChild(createAnimateNode("r", this.r, duration));
@@ -88,6 +89,7 @@ function createAnimation(
 }
 function getAnimationAttributes(
   this: SVGCircleElement,
+  timing: number,
   animationAttr?: SVGCircleAnimationAttributes
 ): SVGCircleAnimationAttributes {
   if (!animationAttr) {
@@ -99,11 +101,13 @@ function getAnimationAttributes(
       initCy: this.cy.baseVal.valueAsString,
       initR: this.r.baseVal.valueAsString,
       attributes: this.attributes,
+      keyTimes: "" + timing,
       createAnimation: createAnimation,
     };
   }
   animationAttr.cx += ";" + this.cx.baseVal.valueAsString;
   animationAttr.cy += ";" + this.cy.baseVal.valueAsString;
   animationAttr.r += ";" + this.r.baseVal.valueAsString;
+  animationAttr.keyTimes += ";" + timing;
   return animationAttr;
 }

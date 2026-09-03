@@ -4,6 +4,7 @@ import {
   isEditPoint,
   pointerToSvgCoords,
 } from "../helper";
+import { ESC } from "../keyhelper";
 import {
   type KeydownInputHandler,
   type MousemoveInputHandler,
@@ -70,16 +71,10 @@ const dblclick: DblClickInputHandler = {
   },
 };
 
-const ESC: KeydownInputHandler = {
-  type: "keydown",
-  keyCode: "Escape",
-  desc: "switch mode -> NEUTRAL",
-  handler: (_, s) => s.setActiveModeId("NEUTRAL"),
-};
 const s: KeydownInputHandler = {
   type: "keydown",
   keyCode: "s",
-  desc: "switch mode -> SELECT",
+  desc: "SELECT",
   handler: (_, s) => s.setActiveModeId("SELECT"),
 };
 

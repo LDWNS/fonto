@@ -1,17 +1,11 @@
 import { createTextAreaFrame } from "../framecreator";
 import { toast } from "../helper";
+import { ESC } from "../keyhelper";
 import { setCircleMethods } from "../shapes/circle";
 import { setLineMethods } from "../shapes/line";
-import { createPath, setPathMethods } from "../shapes/path";
-import type { Mode, KeydownInputHandler, EditableSVGElement } from "../types";
+import { setPathMethods } from "../shapes/path";
+import type { Mode } from "../types";
 import DOMPurify from "dompurify";
-
-const ESC: KeydownInputHandler = {
-  type: "keydown",
-  keyCode: "Escape",
-  desc: "switch mode -> NEUTRAL",
-  handler: (_, s) => s.setActiveModeId("NEUTRAL"),
-};
 
 const frame = createTextAreaFrame();
 export const TEXT_INPUT: Mode = {

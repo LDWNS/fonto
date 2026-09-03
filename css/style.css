@@ -45,10 +45,10 @@ g {
   border-radius: 2px;
   background-color: transparent;
 }
+[data-edit] {
+  cursor: grab;
+}
 svg#svg-canvas {
-  [data-point] {
-    cursor: grab;
-  }
   line,
   circle:not([data-edit]) {
     stroke-width: 3px;
@@ -75,7 +75,7 @@ svg#svg-canvas {
 }
 #timeline {
   width: 500px;
-  height: 15px;
+  height: 25px;
   position: relative;
 }
 #timeline .point {
@@ -119,11 +119,10 @@ ul.inputHelp {
   backdrop-filter: blur(2px);
 
   &#mainInputHelp {
-    bottom: 0;
-    right: 0;
-    margin: 0.3rem;
+    top: 0;
+    left: 101%;
     span:first-child {
-      min-width: 4rem;
+      min-width: 3rem;
       font-size: 0.8rem;
     }
     span:last-child {
@@ -132,14 +131,14 @@ ul.inputHelp {
   }
 
   &#bottomBarInputHelp {
-    bottom: -30%;
+    top: 100%;
     left: 0;
     font-size: 0.5rem;
     /* bottom: -100%; */
     /* left: 0; */
     padding: 0.3rem;
     span:first-child {
-      min-width: 3rem;
+      min-width: 2rem;
       font-size: 0.5rem;
     }
     span:last-child {

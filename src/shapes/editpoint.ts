@@ -2,6 +2,7 @@ import { distance, toast } from "../helper";
 import { createLine } from "./line";
 import type { Coord, CoordPair, EditPoint } from "../types";
 import type { EditPointType } from "../types/geometry";
+import { createText } from "../framecreator";
 
 export function createEditPoint(
   type: EditPointType,
@@ -37,6 +38,7 @@ export function createEditPoint(
   ep.linkPrev = linkPrev;
   ep.setAnchorPoint = setAnchorPoint;
   ep.toggleAnchorLine = toggleAnchorLine;
+  ep.toggleAnchorText = toggleAnchorText;
 
   return ep;
 }
@@ -56,6 +58,17 @@ function update(this: EditPoint, { x1, y1, x2, y2 }: CoordPair) {
   }
 }
 
+function newAnchorText(id: string, text: string, coord: Coord): SVGTextElement {
+  const al = createText(coord);
+  al.id = id + "-text";
+  al.setAttribute("data-edit", "true");
+  // al.setAttribute("stroke", "#333");
+  al.style.fontSize = ".6rem";
+  al.textContent = `${text}`;
+  al.setAttribute("x", `${coord.x - 3 * text.length}`);
+  al.setAttribute("y", `${8 + 0.6 * 16 + 5}`);
+  return al;
+}
 function newAnchorLine(id: string, coord: CoordPair): SVGLineElement {
   const al = createLine(coord);
   al.id = id + "-line";
@@ -122,6 +135,21 @@ function setAnchorPoint(
     this.anchorPoint = anchorPoint;
   }
   anchorPoint.addAnchoredPoint(this, blind);
+  return this;
+}
+function toggleAnchorText(this: EditPoint, text: string) {
+  if (!this) {
+    toast("No anchorpoint when trying to toggle anchorText");
+    return this;
+  }
+  if (this.anchorText) {
+    this.anchorText.remove();
+  } else {
+    this.anchorText = newAnchorText(this.id, text, {
+      x: this.cx.baseVal.value,
+      y: this.cy.baseVal.value,
+    });
+  }
   return this;
 }
 function toggleAnchorLine(this: EditPoint) {

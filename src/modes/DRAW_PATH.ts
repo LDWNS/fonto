@@ -4,11 +4,11 @@ import { createLine } from "../shapes/line";
 import type {
   ClickInputHandler,
   Coord,
-  KeydownInputHandler,
   MousemoveInputHandler,
 } from "../types";
 import type { Mode } from "../types/mode";
 import { createSVGFrame } from "../framecreator";
+import { ESC } from "../keyhelper";
 
 let currentPath: SVGPathElement | null = null;
 let paths: SVGPathElement[] = [];
@@ -58,18 +58,6 @@ const CLICK: ClickInputHandler = {
         y1: projCoords.y,
       });
       lastCoord = projCoords;
-    }
-  },
-};
-const ESC: KeydownInputHandler = {
-  type: "keydown",
-  keyCode: "Escape",
-  desc: "switch mode -> NEUTRAL",
-  handler: (_, s) => {
-    if (currentPath) {
-      currentPath = null;
-    } else {
-      s.setActiveModeId("NEUTRAL");
     }
   },
 };

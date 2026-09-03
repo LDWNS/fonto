@@ -21,6 +21,7 @@ interface Editable {
   getEditPoints(): EditPoint[];
   edit(editPoint: EditPoint, { x, y }: Coord, dx: number, dy: number): void;
   getAnimationAttributes(
+    timing: number,
     animationAttributes?: AnimationAttributes
   ): AnimationAttributes;
 }
@@ -37,6 +38,7 @@ export interface SVGLineAnimationAttributes {
   initY1: string;
   initX2: string;
   initY2: string;
+  keyTimes: string;
   attributes: NamedNodeMap;
   createAnimation(duration: string): SVGElement;
 }
@@ -47,12 +49,15 @@ export interface SVGCircleAnimationAttributes {
   initCx: string;
   initCy: string;
   initR: string;
+  keyTimes: string;
   attributes: NamedNodeMap;
   createAnimation(duration: string): SVGElement;
 }
 export interface SVGPathAnimationAttributes {
   d: string;
   initD: string;
+  keyTimes: string;
+  attributes: NamedNodeMap;
   createAnimation(duration: string): SVGElement;
 }
 export type EditableSVGElement =
@@ -68,6 +73,7 @@ export enum EditPointType {
   PATH_1,
   PATH_A1,
   PATH_A2,
+  TIMELINE,
 }
 
 export interface EditPoint extends SVGCircleElement {
@@ -76,6 +82,7 @@ export interface EditPoint extends SVGCircleElement {
   anchorPoint?: EditPoint;
   anchoredPoints?: EditPoint[];
   anchorLine?: SVGLineElement;
+  anchorText?: SVGTextElement;
   blindAnchorPoint?: EditPoint;
   blindAnchoredPoints?: EditPoint[];
   nextEditPoint?: EditPoint;
@@ -85,6 +92,7 @@ export interface EditPoint extends SVGCircleElement {
   linkPrev(editPoint?: EditPoint): EditPoint;
   setAnchorPoint(editPoint: EditPoint, blind?: boolean): EditPoint;
   toggleAnchorLine(): EditPoint;
+  toggleAnchorText(text: string): EditPoint;
   x(): number;
   y(): number;
 }

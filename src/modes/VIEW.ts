@@ -1,12 +1,7 @@
-import { createSVGFrame, createTimelineFrame } from "../framecreator";
-import type { KeydownInputHandler, Mode } from "../types";
+import { createSVGFrame } from "../framecreator";
+import { ESC } from "../keyhelper";
+import type { Mode } from "../types";
 import type { AnimationAttributes } from "../types/geometry";
-
-const ESC: KeydownInputHandler = {
-  type: "keydown",
-  keyCode: "Escape",
-  handler: (_, s) => s.setActiveModeId("NEUTRAL"),
-};
 
 const frame = createSVGFrame();
 export const VIEW: Mode = {
@@ -25,11 +20,14 @@ export const VIEW: Mode = {
         children.forEach((child) => {
           const id = child.id;
           if (!animations.get(id)) {
-            animations.set(id, child.getAnimationAttributes());
+            animations.set(
+              id,
+              child.getAnimationAttributes(keyframe.x / duration)
+            );
           } else {
             animations.set(
               id,
-              child.getAnimationAttributes(animations.get(id))
+              child.getAnimationAttributes(keyframe.x / 415, animations.get(id))
             );
           }
         });

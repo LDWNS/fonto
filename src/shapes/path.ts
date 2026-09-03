@@ -9,7 +9,6 @@ import type {
 } from "../types";
 import {
   EditPointType,
-  type SVGCircleAnimationAttributes,
   type SVGPathAnimationAttributes,
 } from "../types/geometry";
 import { createCSeg, createLSeg } from "./pathsegment";
@@ -44,7 +43,6 @@ function getEditPoints(this: SVGPathElement): EditPoint[] {
 }
 function edit(this: SVGPathElement, ep: EditPoint, coord: Coord): void {
   if (this.pathSegs) {
-    let oldPathString = this.getAttribute("d");
     let pathString = "";
     this.pathSegs = this.pathSegs.map((ps) => {
       if (ep.targetId.endsWith(ps.id)) {
@@ -115,26 +113,31 @@ function createAnimation(
   this: SVGPathAnimationAttributes,
   duration: string
 ): SVGElement {
-  const lineNode = document.createElementNS(
+  const pathNode = document.createElementNS(
     "http://www.w3.org/2000/svg",
     "path"
   );
-  lineNode.setAttribute("d", this.initD);
-  lineNode.appendChild(createAnimateNode("d", this.d, duration));
-  return lineNode;
+  pathNode.setAttribute("d", this.initD);
+  pathNode.setAttribute("keyTimes", this.keyTimes);
+  pathNode.appendChild(createAnimateNode("d", this.d, duration));
+  return pathNode;
 }
 function getAnimationAttributes(
   this: SVGPathElement,
+  timing: number,
   animationAttr?: SVGPathAnimationAttributes
 ): SVGPathAnimationAttributes {
   if (!animationAttr) {
     return {
       d: this.getAttribute("d")!,
       initD: this.getAttribute("d")!,
+      keyTimes: "" + timing,
+      attributes: this.attributes,
       createAnimation: createAnimation,
     };
   }
   animationAttr.d += ";" + this.getAttribute("d")!;
+  animationAttr.keyTimes += ";" + timing;
   return animationAttr;
 }
 export function setPathMethods(path: SVGPathElement) {

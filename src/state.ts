@@ -229,7 +229,7 @@ export class App {
           const span1 = document.createElement("span");
           span1.innerText =
             ih.type === "keydown"
-              ? `<${(ih as KeydownInputHandler).keyCode}>`
+              ? `${(ih as KeydownInputHandler).keyCode}`
               : `${ih.type}`;
           const span2 = document.createElement("span");
           span2.innerText = ih.desc;

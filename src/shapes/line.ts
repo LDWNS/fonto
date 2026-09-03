@@ -3,7 +3,6 @@ import { createAnimateNode, uid } from "../helper";
 import type { Coord, CoordPair, EditPoint } from "../types";
 import {
   EditPointType,
-  type AnimationAttributes,
   type SVGLineAnimationAttributes,
 } from "../types/geometry";
 
@@ -46,10 +45,10 @@ function createAnimation(
   lineNode.setAttribute("y1", this.initY1);
   lineNode.setAttribute("x2", this.initX2);
   lineNode.setAttribute("y2", this.initY2);
-  lineNode.appendChild(createAnimateNode("x1", this.x1, duration));
-  lineNode.appendChild(createAnimateNode("y1", this.y1, duration));
-  lineNode.appendChild(createAnimateNode("x2", this.x2, duration));
-  lineNode.appendChild(createAnimateNode("y2", this.y2, duration));
+  lineNode.appendChild(createAnimateNode("x1", this.x1, duration, this.keyTimes));
+  lineNode.appendChild(createAnimateNode("y1", this.y1, duration, this.keyTimes));
+  lineNode.appendChild(createAnimateNode("x2", this.x2, duration, this.keyTimes));
+  lineNode.appendChild(createAnimateNode("y2", this.y2, duration, this.keyTimes));
   Object.entries(this.attributes).forEach(([_, value]) => {
     lineNode.setAttribute(value.nodeName, value.nodeValue ?? "true");
   });
@@ -57,6 +56,7 @@ function createAnimation(
 }
 function getAnimationAttributes(
   this: SVGLineElement,
+  timing: number,
   animationAttr?: SVGLineAnimationAttributes
 ): SVGLineAnimationAttributes {
   if (!animationAttr) {
@@ -70,6 +70,7 @@ function getAnimationAttributes(
       initX2: this.x2.baseVal.valueAsString,
       initY2: this.y2.baseVal.valueAsString,
       attributes: this.attributes,
+      keyTimes: "" + timing,
       createAnimation: createAnimation,
     };
   }
@@ -77,6 +78,7 @@ function getAnimationAttributes(
   animationAttr.y1 += ";" + this.y1.baseVal.valueAsString;
   animationAttr.x2 += ";" + this.x2.baseVal.valueAsString;
   animationAttr.y2 += ";" + this.y2.baseVal.valueAsString;
+  animationAttr.keyTimes += ";" + timing;
   return animationAttr;
 }
 

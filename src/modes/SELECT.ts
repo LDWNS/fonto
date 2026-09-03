@@ -1,5 +1,6 @@
 import { createSVGFrame } from "../framecreator";
 import { isEditableSVGElement } from "../helper";
+import { ESC } from "../keyhelper";
 import type {
   ClickInputHandler,
   EditableSVGElement,
@@ -24,16 +25,10 @@ const CLICK: ClickInputHandler = {
     }
   },
 };
-const ESC: KeydownInputHandler = {
-  type: "keydown",
-  keyCode: "Escape",
-  desc: "switch mode -> NEUTRAL",
-  handler: (_, s) => s.setActiveModeId("NEUTRAL"),
-};
 const e: KeydownInputHandler = {
   type: "keydown",
   keyCode: "e",
-  desc: "switch mode -> EDIT",
+  desc: "EDIT",
   handler: (_, s) => s.setActiveModeId("EDIT"),
 };
 
