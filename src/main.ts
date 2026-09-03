@@ -6,7 +6,7 @@ import { NEUTRAL_MODE } from "./modes/NEUTRAL";
 import { SELECT_MODE } from "./modes/SELECT";
 import { TEXT_INPUT } from "./modes/TEXT_INPUT";
 import { TIMELINE } from "./modes/TIMELINE";
-import { VIEW } from "./modes/VIEW";
+import { PLAY } from "./modes/PLAY";
 import { App } from "./state";
 
 new App({
@@ -18,7 +18,7 @@ new App({
     DRAW_CIRCLE_MODE,
     DRAW_PATH_MODE,
     TEXT_INPUT,
-    VIEW,
+    PLAY,
   ],
   bottomBar: [TIMELINE],
 });

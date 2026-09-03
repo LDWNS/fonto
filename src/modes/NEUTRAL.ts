@@ -37,12 +37,6 @@ const i: KeydownInputHandler = {
   keyCode: "i",
   handler: (_, s) => s.setActiveModeId("TEXT_INPUT"),
 };
-const v: KeydownInputHandler = {
-  type: "keydown",
-  desc: "VIEW",
-  keyCode: "v",
-  handler: (_, s) => s.setActiveModeId("VIEW"),
-};
 const t: KeydownInputHandler = {
   type: "keydown",
   desc: "toggle bottombar",
@@ -56,7 +50,7 @@ const space: KeydownInputHandler = {
   desc: "play animation",
   keyCode: "spc",
   handler: (_, s) => {
-    s.setActiveModeId("VIEW");
+    s.setActiveModeId("PLAY");
     if (s.activeMainFrameMode.frame instanceof SVGSVGElement) {
       s.activeMainFrameMode.frame.setCurrentTime(0);
       let isActive = false;
@@ -88,5 +82,5 @@ const frame = createSVGFrame();
 export const NEUTRAL_MODE: Mode = {
   name: "NEUTRAL",
   frame: frame,
-  inputHandlers: [S, l, e, c, p, i, v, t, space, questionmark],
+  inputHandlers: [S, l, e, c, p, i, t, space, questionmark],
 };

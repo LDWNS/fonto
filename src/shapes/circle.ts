@@ -79,9 +79,9 @@ function createAnimation(
   circleNode.setAttribute("cy", this.initCy);
   circleNode.setAttribute("r", this.initR);
   circleNode.setAttribute("keyTimes", this.keyTimes);
-  circleNode.appendChild(createAnimateNode("cx", this.cx, duration));
-  circleNode.appendChild(createAnimateNode("cy", this.cy, duration));
-  circleNode.appendChild(createAnimateNode("r", this.r, duration));
+  circleNode.appendChild(createAnimateNode("cx", this.cx, duration, this.keyTimes));
+  circleNode.appendChild(createAnimateNode("cy", this.cy, duration, this.keyTimes));
+  circleNode.appendChild(createAnimateNode("r", this.r, duration, this.keyTimes));
   Object.entries(this.attributes).forEach(([_, value]) => {
     circleNode.setAttribute(value.nodeName, value.nodeValue ?? "true");
   });

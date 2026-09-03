@@ -119,7 +119,7 @@ function createAnimation(
   );
   pathNode.setAttribute("d", this.initD);
   pathNode.setAttribute("keyTimes", this.keyTimes);
-  pathNode.appendChild(createAnimateNode("d", this.d, duration));
+  pathNode.appendChild(createAnimateNode("d", this.d, duration, this.keyTimes));
   return pathNode;
 }
 function getAnimationAttributes(
