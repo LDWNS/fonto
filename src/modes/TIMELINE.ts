@@ -52,8 +52,7 @@ const mousedown: MousedownInputHandler = {
   type: "mousedown",
   validator: (e, s) =>
     isEditPoint(e.target) &&
-    (s.activeMainFrameMode.name === "NEUTRAL" ||
-      !toast("Mode must be NEUTRAL to edit timeline.")),
+    s.activeMainFrameMode.name === "NEUTRAL",
   handler: (e, s) => {
     saveState(s.activeMainFrameMode);
     currentKeyframe.point.classList.remove("active");
@@ -85,8 +84,7 @@ const doubleClick: DblClickInputHandler = {
   desc: "add keyframe",
   validator: (e, s) =>
     e.target instanceof SVGElement &&
-    (s.activeMainFrameMode.name === "NEUTRAL" ||
-      !toast("Mode must be NEUTRAL to edit timeline.")),
+    s.activeMainFrameMode.name === "NEUTRAL",
   handler: (e, s) => {
     const projCoords = pointerToSvgCoords(
       e,
