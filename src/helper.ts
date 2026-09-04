@@ -47,7 +47,7 @@ const eventToKeyCode = ({
 };
 
 const toastEl = document.querySelector("p#toast") as HTMLElement;
-function toast(mes: string) {
+function toast(mes: string): boolean {
   if (toastEl) {
     toastEl.innerText = mes;
     toastEl.style.top = "0rem";
@@ -55,7 +55,9 @@ function toast(mes: string) {
       toastEl.innerHTML = "";
       toastEl.style.top = "-2rem";
     }, 2000);
+    return true;
   }
+  return false;
 }
 const inputEl = document.querySelector("p#input") as HTMLElement;
 function logInput(mes: string) {

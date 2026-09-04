@@ -131,6 +131,9 @@ export class App {
   }
 
   activeModeInit(newMode: Mode) {
+    if (newMode.events?.preModeEnter && !newMode.events.preModeEnter(this)) {
+      return;
+    }
     this.activeMainFrameMode = newMode;
 
     modeIndicator.innerText = this.activeMainFrameMode.name;

@@ -50,7 +50,10 @@ const MOVE: MousemoveInputHandler = {
 };
 const mousedown: MousedownInputHandler = {
   type: "mousedown",
-  validator: (e, _) => isEditPoint(e.target),
+  validator: (e, s) =>
+    isEditPoint(e.target) &&
+    (s.activeMainFrameMode.name === "NEUTRAL" ||
+      !toast("Mode must be NEUTRAL to edit timeline.")),
   handler: (e, s) => {
     saveState(s.activeMainFrameMode);
     currentKeyframe.point.classList.remove("active");
@@ -67,7 +70,11 @@ const mousedown: MousedownInputHandler = {
 };
 const mouseup: MouseupInputHandler = {
   type: "mouseup",
-  validator: (e, _) => e.target instanceof SVGElement && !!movingPoint,
+  validator: (e, s) =>
+    e.target instanceof SVGElement &&
+    !!movingPoint &&
+    (s.activeMainFrameMode.name === "NEUTRAL" ||
+      !toast("Mode must be NEUTRAL to edit timeline.")),
   handler: (_, __) => {
     movingPoint = null;
   },
@@ -76,7 +83,10 @@ const mouseup: MouseupInputHandler = {
 const doubleClick: DblClickInputHandler = {
   type: "dblclick",
   desc: "add keyframe",
-  validator: (e, _) => e.target instanceof SVGElement,
+  validator: (e, s) =>
+    e.target instanceof SVGElement &&
+    (s.activeMainFrameMode.name === "NEUTRAL" ||
+      !toast("Mode must be NEUTRAL to edit timeline.")),
   handler: (e, s) => {
     const projCoords = pointerToSvgCoords(
       e,
@@ -100,7 +110,10 @@ const doubleClick: DblClickInputHandler = {
 };
 const CLICK: ClickInputHandler = {
   type: "click",
-  validator: (e, _) => !isEditPoint(e.target),
+  validator: (e, s) =>
+    !isEditPoint(e.target) &&
+    (s.activeMainFrameMode.name === "NEUTRAL" ||
+      !toast("Mode must be NEUTRAL to edit timeline.")),
   handler: (e, _) => {
     if ((e.target as HTMLElement).id === "animationDuration") {
       toggleDurationInput();
@@ -212,6 +225,13 @@ export const TIMELINE: Mode = {
   frame: frame,
   inputHandlers: [CLICK, ENTER, ESC, mousedown, mouseup, MOVE, doubleClick],
   events: {
+    preModeInteract(s) {
+      if (s.activeMainFrameMode.name !== "NEUTRAL") {
+        toast("Be in NEUTRAL before editing the timeline.");
+        return false;
+      }
+      return true;
+    },
     modeEnter(s) {
       currentKeyframe = createKeyframePoint(5, s.activeBottomBarMode, []);
       currentKeyframe.point.classList.add("active");

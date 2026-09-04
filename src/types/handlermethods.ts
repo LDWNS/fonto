@@ -21,6 +21,8 @@ export interface KeydownInputHandler extends BaseInputHandler<"keydown"> {
 }
 
 export interface LifeCycleHandlers {
+  preModeEnter?: (state: App) => boolean | void;
+  preModeInteract?: (state: App) => boolean | void;
   modeExit?: (state: App) => boolean | void;
   modeEnter?: (state: App) => boolean | void;
 }
