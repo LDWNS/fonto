@@ -21,4 +21,5 @@ new App({
     PLAY,
   ],
   bottomBar: [TIMELINE],
+  mainFrameKeys: [],
 });

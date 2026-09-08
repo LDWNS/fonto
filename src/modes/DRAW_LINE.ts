@@ -55,8 +55,8 @@ const CLICK: ClickInputHandler = {
 const L: KeydownInputHandler = {
   type: "keydown",
   keyCode: "e",
-  desc: "EDIT_LINE",
-  handler: (_, s) => s.setActiveModeId("EDIT_LINE"),
+  desc: "EDIT",
+  handler: (_, s) => s.setActiveModeId("EDIT"),
 };
 
 const frame = createSVGFrame();
