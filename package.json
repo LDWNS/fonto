@@ -2,6 +2,7 @@
   "name": "fonto",
   "version": "1.0.0",
   "author": "ldwns",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
