@@ -74,5 +74,4 @@ export const DRAW_PATH_MODE: Mode = {
     },
   },
   inputHandlers: [ESC, CLICK, MOVE],
-  color: "#229e7f",
 };

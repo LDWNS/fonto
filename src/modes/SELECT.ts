@@ -45,5 +45,4 @@ export const SELECT_MODE: Mode = {
     },
   },
   inputHandlers: [ESC, CLICK, e],
-  color: "blue",
 };

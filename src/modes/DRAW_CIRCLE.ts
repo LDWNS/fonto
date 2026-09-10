@@ -2,11 +2,7 @@ import { createSVGFrame } from "../framecreator";
 import { pointerToSvgCoords } from "../helper";
 import { ESC } from "../keyhelper";
 import { createCircle } from "../shapes/circle";
-import type {
-  ClickInputHandler,
-  Coord,
-  MousemoveInputHandler,
-} from "../types";
+import type { ClickInputHandler, Coord, MousemoveInputHandler } from "../types";
 import type { Mode } from "../types/mode";
 
 let currentCircle: SVGCircleElement | null = null;
@@ -63,5 +59,4 @@ export const DRAW_CIRCLE_MODE: Mode = {
     },
   },
   inputHandlers: [ESC, CLICK, MOVE],
-  color: "#7f22fe",
 };

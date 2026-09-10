@@ -110,5 +110,4 @@ export const EDIT_MODE: Mode = {
     },
   },
   inputHandlers: [ESC, s, mousedown, MOVE, mouseup, dblclick],
-  color: "#cc7704",
 };

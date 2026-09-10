@@ -70,5 +70,4 @@ export const DRAW_LINE_MODE: Mode = {
     },
   },
   inputHandlers: [ESC, CLICK, MOVE, L],
-  color: "#227ffe",
 };

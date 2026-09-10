@@ -7,6 +7,7 @@ import type {
   Mode,
 } from "./types";
 import { eventToKeyCode, logInput, toast } from "./helper";
+import { generateAvatar, getHashColor } from "./avatar";
 
 const modeIndicator = document.querySelector("#modeIndicator") as HTMLElement;
 const mainInputHelp = document.querySelector("#mainInputHelp") as HTMLElement;
@@ -134,10 +135,13 @@ export class App {
     if (newMode.events?.preModeEnter && !newMode.events.preModeEnter(this)) {
       return;
     }
+    generateAvatar(newMode.name, "modeAvatar");
     this.activeMainFrameMode = newMode;
 
     modeIndicator.innerText = this.activeMainFrameMode.name;
-    modeIndicator.style.color = this.activeMainFrameMode.color ?? "#333";
+    modeIndicator.style.color =
+      this.activeMainFrameMode.color ??
+      getHashColor(this.activeMainFrameMode.name);
     this.#mapInputHelp(
       this.#asArray(this.activeMainFrameMode.inputHandlers),
       mainInputHelp,
@@ -145,7 +149,7 @@ export class App {
     );
     root.style.setProperty(
       "--c-accent",
-      this.activeMainFrameMode.color ?? "#333"
+      this.activeMainFrameMode.color ?? "#555"
     );
     app.appendChild(this.activeMainFrameMode.frame);
 

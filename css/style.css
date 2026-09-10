@@ -15,6 +15,13 @@ textarea {
   background-color: var(--c-bg);
   border: solid 1px #fff;
 }
+h1 {
+  img {
+    width: 1.5rem;
+    height: 1.5rem;
+    filter: invert(100%);
+  }
+}
 body {
   margin: 0;
   display: flex;
@@ -28,11 +35,13 @@ body {
 .container {
   position: relative;
 }
-canvas {
-  border: 1px solid #fff;
-  z-index: 0;
+#modeAvatar {
   position: relative;
-  z-index: 1;
+  z-index: -1;
+  position: absolute;
+  top: 400px;
+  left: -104px;
+  /* opacity: 0.6; */
 }
 g {
   path {
@@ -44,6 +53,8 @@ g {
   border: 1px solid #fff;
   border-radius: 2px;
   background-color: transparent;
+  height: 500px;
+  width: 500px;
 }
 [data-edit] {
   cursor: grab;

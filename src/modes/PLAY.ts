@@ -7,7 +7,6 @@ const frame = createSVGFrame();
 export const PLAY: Mode = {
   name: "PLAY",
   frame: frame,
-  color: "#AA2399",
   inputHandlers: [ESC],
   events: {
     modeEnter(s) {
