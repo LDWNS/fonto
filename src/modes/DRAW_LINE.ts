@@ -9,6 +9,7 @@ import type {
   MousemoveInputHandler,
 } from "../types";
 import type { Mode } from "../types/mode";
+import { EDIT_MODE } from "./EDIT";
 
 let currentLine: SVGLineElement | null = null;
 let lines: SVGLineElement[] = [];
@@ -52,13 +53,6 @@ const CLICK: ClickInputHandler = {
     }
   },
 };
-const L: KeydownInputHandler = {
-  type: "keydown",
-  keyCode: "e",
-  desc: "EDIT",
-  handler: (_, s) => s.setActiveModeId("EDIT"),
-};
-
 const frame = createSVGFrame();
 export const DRAW_LINE_MODE: Mode = {
   name: "DRAW_LINE",
@@ -70,5 +64,6 @@ export const DRAW_LINE_MODE: Mode = {
       lines = [];
     },
   },
-  inputHandlers: [ESC, CLICK, MOVE, L],
+  inputHandlers: [ESC, CLICK, MOVE],
+  subModes: [EDIT_MODE],
 };

@@ -7,6 +7,7 @@ import type {
   KeydownInputHandler,
 } from "../types";
 import type { Mode } from "../types/mode";
+import { EDIT_MODE } from "./EDIT";
 
 let selectedNodes: EditableSVGElement[] = [];
 const CLICK: ClickInputHandler = {
@@ -25,12 +26,6 @@ const CLICK: ClickInputHandler = {
     }
   },
 };
-const e: KeydownInputHandler = {
-  type: "keydown",
-  keyCode: "e",
-  desc: "EDIT",
-  handler: (_, s) => s.setActiveModeId("EDIT"),
-};
 
 const frame = createSVGFrame();
 export const SELECT_MODE: Mode = {
@@ -45,5 +40,6 @@ export const SELECT_MODE: Mode = {
       s.selectedNodes = selectedNodes;
     },
   },
-  inputHandlers: [ESC, CLICK, e],
+  inputHandlers: [ESC, CLICK],
+  subModes: [EDIT_MODE],
 };
