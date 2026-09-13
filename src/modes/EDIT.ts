@@ -16,6 +16,7 @@ import {
 } from "../types";
 import { EditPointType } from "../types/geometry";
 import type { Mode } from "../types/mode";
+import { SELECT_MODE } from "./SELECT";
 
 let movingPoint: EditPoint | null;
 let currentPath: EditableSVGElement | null;
@@ -71,17 +72,11 @@ const dblclick: DblClickInputHandler = {
   },
 };
 
-const s: KeydownInputHandler = {
-  type: "keydown",
-  keyCode: "s",
-  desc: "SELECT",
-  handler: (_, s) => s.setActiveModeId("SELECT"),
-};
-
 const frame = createSVGFrame();
 export const EDIT_MODE: Mode = {
   name: "EDIT",
   frame: frame,
+  modeKey: "e",
   events: {
     modeEnter: (s) => {
       let editNodes = s.activeMainFrameMode.frame.childNodes
@@ -109,5 +104,6 @@ export const EDIT_MODE: Mode = {
       currentPath = null;
     },
   },
-  inputHandlers: [ESC, s, mousedown, MOVE, mouseup, dblclick],
+  inputHandlers: [ESC, mousedown, MOVE, mouseup, dblclick],
+  subModes: [SELECT_MODE],
 };

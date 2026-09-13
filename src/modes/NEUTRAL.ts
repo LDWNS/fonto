@@ -1,68 +1,19 @@
 import { createSVGFrame } from "../framecreator";
 import type { Mode, KeydownInputHandler } from "../types";
+import { DRAW_CIRCLE_MODE } from "./DRAW_CIRCLE";
+import { DRAW_LINE_MODE } from "./DRAW_LINE";
+import { DRAW_PATH_MODE } from "./DRAW_PATH";
+import { EDIT_MODE } from "./EDIT";
+import { PLAY } from "./PLAY";
+import { SELECT_MODE } from "./SELECT";
+import { TEXT_INPUT } from "./TEXT_INPUT";
 
-const S: KeydownInputHandler = {
-  type: "keydown",
-  desc: "SELECT",
-  keyCode: "s",
-  handler: (_, s) => s.setActiveModeId("SELECT"),
-};
-const l: KeydownInputHandler = {
-  type: "keydown",
-  desc: "DRAW_LINE",
-  keyCode: "l",
-  handler: (_, s) => s.setActiveModeId("DRAW_LINE"),
-};
-const e: KeydownInputHandler = {
-  type: "keydown",
-  desc: "EDIT",
-  keyCode: "e",
-  handler: (_, s) => s.setActiveModeId("EDIT"),
-};
-const c: KeydownInputHandler = {
-  type: "keydown",
-  desc: "DRAW_CIRCLE",
-  keyCode: "c",
-  handler: (_, s) => s.setActiveModeId("DRAW_CIRCLE"),
-};
-const p: KeydownInputHandler = {
-  type: "keydown",
-  desc: "DRAW_PATH",
-  keyCode: "p",
-  handler: (_, s) => s.setActiveModeId("DRAW_PATH"),
-};
-const i: KeydownInputHandler = {
-  type: "keydown",
-  desc: "TEXT_INPUT",
-  keyCode: "i",
-  handler: (_, s) => s.setActiveModeId("TEXT_INPUT"),
-};
 const t: KeydownInputHandler = {
   type: "keydown",
   desc: "toggle bottombar",
   keyCode: "t",
   handler: (_, s) => {
     s.toggleBottomBar();
-  },
-};
-const space: KeydownInputHandler = {
-  type: "keydown",
-  desc: "play animation",
-  keyCode: "spc",
-  handler: (_, s) => {
-    s.setActiveModeId("PLAY");
-    if (s.activeMainFrameMode.frame instanceof SVGSVGElement) {
-      s.activeMainFrameMode.frame.setCurrentTime(0);
-      let isActive = false;
-      s.activeMainFrameMode.frame
-        .querySelector("animate")!
-        .addEventListener("endEvent", (_) => {
-          if (isActive) {
-            s.setActiveModeId("NEUTRAL");
-          }
-          isActive = true;
-        });
-    }
   },
 };
 const questionmark: KeydownInputHandler = {
@@ -82,5 +33,15 @@ const frame = createSVGFrame();
 export const NEUTRAL_MODE: Mode = {
   name: "NEUTRAL",
   frame: frame,
-  inputHandlers: [S, l, e, c, p, i, t, space, questionmark],
+  inputHandlers: [t, questionmark],
+  modeKey: "s-n",
+  subModes: [
+    DRAW_CIRCLE_MODE,
+    DRAW_LINE_MODE,
+    DRAW_PATH_MODE,
+    EDIT_MODE,
+    PLAY,
+    SELECT_MODE,
+    TEXT_INPUT,
+  ],
 };

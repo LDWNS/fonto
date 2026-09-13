@@ -66,6 +66,7 @@ const frame = createSVGFrame();
 export const DRAW_PATH_MODE: Mode = {
   name: "DRAW_PATH",
   frame: frame,
+  modeKey: "p",
   events: {
     modeExit: (s) => {
       currentPath = null;

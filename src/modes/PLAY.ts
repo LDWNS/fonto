@@ -6,6 +6,7 @@ import type { AnimationAttributes } from "../types/geometry";
 const frame = createSVGFrame();
 export const PLAY: Mode = {
   name: "PLAY",
+  modeKey: "space",
   frame: frame,
   inputHandlers: [ESC],
   events: {
