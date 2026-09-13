@@ -11,6 +11,7 @@ const frame = createTextAreaFrame();
 export const TEXT_INPUT: Mode = {
   name: "TEXT_INPUT",
   frame: frame,
+  modeKey: "i",
   inputHandlers: [ESC],
   events: {
     modeEnter(s) {

@@ -36,6 +36,7 @@ const frame = createSVGFrame();
 export const SELECT_MODE: Mode = {
   name: "SELECT",
   frame: frame,
+  modeKey: "s",
   events: {
     modeEnter(s) {
       selectedNodes = s.selectedNodes;

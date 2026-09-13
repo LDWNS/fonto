@@ -52,6 +52,7 @@ const frame = createSVGFrame();
 export const DRAW_CIRCLE_MODE: Mode = {
   name: "DRAW_CIRCLE",
   frame: frame,
+  modeKey: "c",
   events: {
     modeExit: (s) => {
       s.data["svg-canvas"] = (s.data["svg-canvas"] ?? []).concat(circles);

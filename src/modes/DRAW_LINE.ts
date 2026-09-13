@@ -63,6 +63,7 @@ const frame = createSVGFrame();
 export const DRAW_LINE_MODE: Mode = {
   name: "DRAW_LINE",
   frame: frame,
+  modeKey: "l",
   events: {
     modeExit: (s) => {
       s.data["svg-canvas"] = (s.data["svg-canvas"] ?? []).concat(lines);

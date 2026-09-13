@@ -82,6 +82,7 @@ const frame = createSVGFrame();
 export const EDIT_MODE: Mode = {
   name: "EDIT",
   frame: frame,
+  modeKey: "e",
   events: {
     modeEnter: (s) => {
       let editNodes = s.activeMainFrameMode.frame.childNodes

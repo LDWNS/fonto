@@ -7,6 +7,8 @@ export type Mode = {
   frame: SVGElement | HTMLElement;
   events?: LifeCycleHandlers;
   color?: string;
+  modeKey?: string;
+  subModes?: Mode[];
 };
 
 export type FrameData = {

@@ -209,7 +209,7 @@ export class App {
   }
 
   #activateListeners(
-    { inputHandlers }: Mode,
+    { inputHandlers, subModes }: Mode,
     keyHandlers: Map<string, KeydownInputHandler[]>,
     mouseHandlers: Map<keyof DocumentEventMap, InputHandler[]>
   ) {
@@ -226,6 +226,27 @@ export class App {
           handlerArr.push(inputHandler);
           mouseHandlers.set(inputHandler.type, handlerArr);
         }
+      });
+    }
+    if (subModes) {
+      subModes.forEach((mode) => {
+        if (!mode.modeKey) {
+          toast(`Mode: ${mode.name} doesn't support the modekey shortcut;`);
+          return;
+        }
+        const ih: KeydownInputHandler = {
+          type: "keydown",
+          keyCode: mode.modeKey,
+          desc: "~> " + mode.name.toLowerCase().replaceAll("_", " "),
+          handler: (_, s) => s.setActiveMode(mode),
+        };
+        const key = ih.type + "_" + ih.keyCode.toLowerCase();
+        const handlerArr = keyHandlers.get(key) ?? [];
+        handlerArr.push(ih);
+        keyHandlers.set(key, handlerArr);
+        mainInputHelp.appendChild(
+          this.#createInputHelpItem(ih.keyCode, ih.desc!)
+        );
       });
     }
     this.generalMFKeyHandlers.forEach((ih) => {
@@ -248,25 +269,30 @@ export class App {
         : inputHandlers;
       ihs
         .filter((ih) => ih.desc)
-        .map((ih) => {
-          const li = document.createElement("li");
-          li.classList.add("inputField");
-          const span1 = document.createElement("span");
-          span1.innerText =
+        .map((ih) =>
+          this.#createInputHelpItem(
             ih.type === "keydown"
               ? `${(ih as KeydownInputHandler).keyCode}`
-              : `${ih.type}`;
-          const span2 = document.createElement("span");
-          span2.innerText = ih.desc!;
-          li.appendChild(span1);
-          li.appendChild(span2);
-          return li;
-        })
+              : `${ih.type}`,
+            ih.desc!
+          )
+        )
         .forEach((node) => target.appendChild(node));
       if (!target.hasChildNodes()) {
         target.classList.add("hidden");
       }
     }
+  }
+  #createInputHelpItem(input: string, desc: string) {
+    const li = document.createElement("li");
+    li.classList.add("inputField");
+    const span1 = document.createElement("span");
+    span1.innerText = input;
+    const span2 = document.createElement("span");
+    span2.innerText = desc;
+    li.appendChild(span1);
+    li.appendChild(span2);
+    return li;
   }
 
   #asArray(a: any | any[]) {
