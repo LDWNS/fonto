@@ -9,6 +9,7 @@ export type {
   MousedownInputHandler,
   MousemoveInputHandler,
   MouseupInputHandler,
+  UpdateAttributeEvent,
 } from "./handlermethods.ts";
 
 export type {
@@ -17,6 +18,7 @@ export type {
   CoordPair,
   CoordTriplet,
   EditPoint,
+  EditPointType,
   EditableSVGElement,
   SVGPathSegment,
 } from "./geometry.ts";

@@ -1,5 +1,4 @@
 import { App } from "../state";
-import type { UpdateAttributeEvent } from "./mode";
 
 export interface BaseInputHandler<K extends keyof DocumentEventMap> {
   type: K;

@@ -14,10 +14,10 @@ import {
   type EditableSVGElement,
   type MouseupInputHandler,
   type DblClickInputHandler,
+  type UpdateAttributeEvent,
+  type Mode,
 } from "../types";
-import { EditPointType } from "../types/geometry";
-import type { UpdateAttributeEvent } from "../types/handlermethods";
-import type { Mode } from "../types/mode";
+import { EditPointType  } from "../types/geometry";
 
 let movingPoint: EditPoint | null;
 let currentPath: EditableSVGElement | null;

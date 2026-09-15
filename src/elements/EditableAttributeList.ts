@@ -1,5 +1,4 @@
-import type { EditableSVGElement } from "../types";
-import type { UpdateAttributeEvent } from "../types/mode";
+import type { EditableSVGElement, UpdateAttributeEvent } from "../types";
 
 export class EditableAttributeList extends HTMLElement {
   constructor() {
@@ -54,7 +53,7 @@ export class EditableAttributeList extends HTMLElement {
     this.addListItem = this.addListItem.bind(this);
     this.handleRemoveItemListeners = this.handleRemoveItemListeners.bind(this);
     this.removeListItem = this.removeListItem.bind(this);
-    this.addEventListener("updateattribute", this.updateAttribute);
+    document.addEventListener("updateattribute", this.updateAttribute);
 
     if (attrs) this.renderList(attrs);
 

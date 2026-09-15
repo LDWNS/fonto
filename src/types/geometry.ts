@@ -1,5 +1,4 @@
 import type { App } from "../state";
-import type { UpdateAttributeEvent } from "./mode";
 
 declare global {
   interface SVGLineElement extends Editable {
