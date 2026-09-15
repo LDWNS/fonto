@@ -3,13 +3,14 @@ import type { InputHandler, LifeCycleHandlers } from "./handlermethods";
 
 export type Mode = {
   name: string;
-  inputHandlers: InputHandler | InputHandler[];
+  inputHandlers: InputHandler[];
   frame: SVGElement | HTMLElement;
   rightContainer?: SVGElement | HTMLElement;
   events?: LifeCycleHandlers;
   color?: string;
   modeKey?: string;
   subModes?: Mode[];
+  alwaysAvailable?: boolean;
 };
 
 export type FrameData = {
@@ -22,6 +23,7 @@ export interface AppFrames {
 export interface TimeLineData {
   duration: number;
   keyframes?: TimeLineFrame[];
+  currentKeyFrameIndex: number;
 }
 export interface TimeLineFrame {
   update(projCoord?: Coord): void;

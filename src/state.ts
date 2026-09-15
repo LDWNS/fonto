@@ -52,8 +52,8 @@ export class App {
     this.mainModeHistory = [];
     this.selectedNodes = [];
     this.generalMFKeyHandlers = modes.mainFrameKeys;
-    this.mfModeInit(this.loadedMainFrameModes[0]);
-    this.bbModeInit(this.loadedBottomBarModes[0]);
+    this.cycle(this.loadedBottomBarModes[0], false);
+    this.cycle(this.loadedMainFrameModes[0], true);
 
     // TODO: automate the activation, by scanning and checking which are needed
     this.addEventListener(app, "click", this.mfMouseHandlers, true);
@@ -112,59 +112,56 @@ export class App {
     }
   }
 
-  bbModeInit(newMode: Mode) {
+  bbCycle(newMode = this.activeBottomBarMode) {
     this.activeBottomBarMode = newMode;
 
-    this.#mapInputHelp(
-      this.#asArray(this.activeBottomBarMode.inputHandlers),
-      bottomBarInputHelp
-    );
     bottomBar.appendChild(this.activeBottomBarMode.frame);
 
     this.#activateListeners(
       this.activeBottomBarMode,
       this.bbKeyHandlers,
-      this.bbMouseHandlers
+      this.bbMouseHandlers,
+      bottomBarInputHelp
     );
-    if (newMode.events?.modeEnter) {
-      newMode.events.modeEnter(this);
-    }
   }
 
-  mfModeInit(newMode: Mode) {
-    if (newMode.events?.preModeEnter && !newMode.events.preModeEnter(this)) {
-      return;
-    }
+  mfCycle(newMode = this.activeMainFrameMode) {
     generateAvatar(newMode.name, "modeAvatar");
     this.activeMainFrameMode = newMode;
-
-    modeIndicator.innerText = this.activeMainFrameMode.name;
+    modeIndicator.innerText = newMode.name;
     modeIndicator.style.color =
-      this.activeMainFrameMode.color ??
-      getHashColor(this.activeMainFrameMode.name);
-    this.#mapInputHelp(
-      this.#asArray(this.activeMainFrameMode.inputHandlers),
-      mainInputHelp,
-      true
-    );
-    root.style.setProperty(
-      "--c-accent",
-      this.activeMainFrameMode.color ?? "#555"
-    );
-    app.appendChild(this.activeMainFrameMode.frame);
-
+      this.activeMainFrameMode.color ?? getHashColor(newMode.name);
+    root.style.setProperty("--c-accent", newMode.color ?? "#555");
+    app.appendChild(newMode.frame);
     this.#activateListeners(
-      this.activeMainFrameMode,
+      newMode,
       this.mfKeyHandlers,
-      this.mfMouseHandlers
+      this.mfMouseHandlers,
+      mainInputHelp
     );
+
     const currentFrameData = this.data["svg-canvas"];
     if (currentFrameData) {
       for (const node of currentFrameData) {
         this.activeMainFrameMode.frame.appendChild(node);
       }
     }
-    if (newMode.events?.modeEnter) {
+  }
+
+  cycle(newMode?: Mode, mf = true) {
+    if (newMode?.events?.preModeEnter && !newMode.events.preModeEnter(this)) {
+      return;
+    }
+    if (newMode?.events?.modeExit) {
+      newMode.events.modeExit(this);
+    }
+    if (mf) {
+      this.mfCycle(newMode);
+    } else {
+      this.bbCycle(newMode);
+    }
+
+    if (newMode?.events?.modeEnter) {
       newMode.events.modeEnter(this);
     }
   }
@@ -184,7 +181,7 @@ export class App {
       this.activeMainFrameMode.events.modeExit(this);
     }
     app.removeChild(this.activeMainFrameMode.frame);
-    this.mfModeInit(newMode);
+    this.cycle(newMode);
   }
   toggleBottomBar() {
     if (bottomBar.hasChildNodes()) {
@@ -211,42 +208,52 @@ export class App {
   #activateListeners(
     { inputHandlers, subModes }: Mode,
     keyHandlers: Map<string, KeydownInputHandler[]>,
-    mouseHandlers: Map<keyof DocumentEventMap, InputHandler[]>
+    mouseHandlers: Map<keyof DocumentEventMap, InputHandler[]>,
+    target: HTMLElement
   ) {
-    if (inputHandlers) {
-      this.#asArray(inputHandlers).forEach((inputHandler: InputHandler) => {
-        if (inputHandler.type === "keydown") {
-          const ih = inputHandler as KeydownInputHandler;
+    const ihs: InputHandler[] = [];
+    target.textContent = "";
+    if (subModes) {
+      subModes
+        .filter(
+          (mode) =>
+            mode.alwaysAvailable ||
+            this.data["bottom-bar"]?.currentKeyFrameIndex === 0
+        )
+        .forEach((mode) => {
+          if (!mode.modeKey) {
+            toast(`Mode: ${mode.name} doesn't support the modekey shortcut;`);
+            return;
+          }
+          const ih = {
+            type: "keydown",
+            keyCode: mode.modeKey,
+            desc: "~> " + mode.name.toLowerCase().replaceAll("_", " "),
+            handler: (_, s) => s.setActiveModeId(mode.name),
+          } as KeydownInputHandler;
           const key = ih.type + "_" + ih.keyCode.toLowerCase();
           const handlerArr = keyHandlers.get(key) ?? [];
           handlerArr.push(ih);
           keyHandlers.set(key, handlerArr);
-        } else {
-          const handlerArr = mouseHandlers.get(inputHandler.type) ?? [];
-          handlerArr.push(inputHandler);
-          mouseHandlers.set(inputHandler.type, handlerArr);
-        }
-      });
+          ihs.push(ih);
+        });
     }
-    if (subModes) {
-      subModes.forEach((mode) => {
-        if (!mode.modeKey) {
-          toast(`Mode: ${mode.name} doesn't support the modekey shortcut;`);
-          return;
+    if (inputHandlers) {
+      inputHandlers.forEach((ih) => {
+        if (ih.type === "keydown") {
+          const kih = ih as KeydownInputHandler;
+          const key = kih.type + "_" + kih.keyCode.toLowerCase();
+          const handlerArr = keyHandlers.get(key) ?? [];
+          handlerArr.push(kih);
+          keyHandlers.set(key, handlerArr);
+        } else {
+          const handlerArr = mouseHandlers.get(ih.type) ?? [];
+          handlerArr.push(ih);
+          mouseHandlers.set(ih.type, handlerArr);
         }
-        const ih: KeydownInputHandler = {
-          type: "keydown",
-          keyCode: mode.modeKey,
-          desc: "~> " + mode.name.toLowerCase().replaceAll("_", " "),
-          handler: (_, s) => s.setActiveMode(mode),
-        };
-        const key = ih.type + "_" + ih.keyCode.toLowerCase();
-        const handlerArr = keyHandlers.get(key) ?? [];
-        handlerArr.push(ih);
-        keyHandlers.set(key, handlerArr);
-        mainInputHelp.appendChild(
-          this.#createInputHelpItem(ih.keyCode, ih.desc!)
-        );
+        if (ih.desc) {
+          ihs.push(ih);
+        }
       });
     }
     this.generalMFKeyHandlers.forEach((ih) => {
@@ -254,34 +261,20 @@ export class App {
       const handlerArr = keyHandlers.get(key) ?? [];
       handlerArr.push(ih);
       keyHandlers.set(key, handlerArr);
-    });
-  }
-  #mapInputHelp(
-    inputHandlers: InputHandler[],
-    target: HTMLElement,
-    loadGeneralInputHelpers = false
-  ): void {
-    if (target) {
-      target.classList.remove("hidden");
-      target.textContent = "";
-      const ihs = loadGeneralInputHelpers
-        ? [...inputHandlers, ...this.generalMFKeyHandlers]
-        : inputHandlers;
-      ihs
-        .filter((ih) => ih.desc)
-        .map((ih) =>
-          this.#createInputHelpItem(
-            ih.type === "keydown"
-              ? `${(ih as KeydownInputHandler).keyCode}`
-              : `${ih.type}`,
-            ih.desc!
-          )
-        )
-        .forEach((node) => target.appendChild(node));
-      if (!target.hasChildNodes()) {
-        target.classList.add("hidden");
+      if (ih.desc) {
+        ihs.push(ih);
       }
-    }
+    });
+    ihs
+      .map((ih) =>
+        this.#createInputHelpItem(
+          ih.type === "keydown"
+            ? `${(ih as KeydownInputHandler).keyCode}`
+            : `${ih.type}`,
+          ih.desc!
+        )
+      )
+      .forEach((node) => target.appendChild(node));
   }
   #createInputHelpItem(input: string, desc: string) {
     const li = document.createElement("li");

@@ -26,7 +26,7 @@ import type {
 import { EditPointType } from "../types/geometry";
 
 let currentKeyframe: TimeLineFrame;
-const keyframes: TimeLineFrame[] = [];
+let keyframes: TimeLineFrame[] = [];
 const toggleDurationInput = () => {
   const animationDurationDisplay = frame.querySelector("#animationDuration");
   const animationDurationInput = frame.querySelector("#animationDurationInput");
@@ -51,8 +51,7 @@ const MOVE: MousemoveInputHandler = {
 const mousedown: MousedownInputHandler = {
   type: "mousedown",
   validator: (e, s) =>
-    isEditPoint(e.target) &&
-    s.activeMainFrameMode.name === "NEUTRAL",
+    isEditPoint(e.target) && s.activeMainFrameMode.name === "NEUTRAL",
   handler: (e, s) => {
     saveState(s.activeMainFrameMode);
     currentKeyframe.point.classList.remove("active");
@@ -63,8 +62,14 @@ const mousedown: MousedownInputHandler = {
     currentKeyframe.children.forEach((child) =>
       s.activeMainFrameMode.frame.appendChild(child)
     );
+    keyframes = keyframes?.sort((a, b) => a.x - b.x);
+    const index = keyframes.map((k) => k.x).indexOf(currentKeyframe.x);
     s.data["svg-canvas"] = currentKeyframe.children;
-    s.data["bottom-bar"] = { duration: duration, keyframes: keyframes };
+    s.data["bottom-bar"] = {
+      duration: duration,
+      keyframes: keyframes,
+      currentKeyFrameIndex: index,
+    };
   },
 };
 const mouseup: MouseupInputHandler = {
@@ -83,8 +88,7 @@ const doubleClick: DblClickInputHandler = {
   type: "dblclick",
   desc: "add keyframe",
   validator: (e, s) =>
-    e.target instanceof SVGElement &&
-    s.activeMainFrameMode.name === "NEUTRAL",
+    e.target instanceof SVGElement && s.activeMainFrameMode.name === "NEUTRAL",
   handler: (e, s) => {
     const projCoords = pointerToSvgCoords(
       e,
@@ -102,8 +106,15 @@ const doubleClick: DblClickInputHandler = {
     currentKeyframe.children.forEach((child) =>
       s.activeMainFrameMode.frame.appendChild(child)
     );
+    keyframes = keyframes?.sort((a, b) => a.x - b.x);
+    const index = keyframes.map((k) => k.x).indexOf(currentKeyframe.x);
     s.data["svg-canvas"] = currentKeyframe.children;
-    s.data["bottom-bar"] = { duration: duration, keyframes: keyframes };
+    s.data["bottom-bar"] = {
+      duration: duration,
+      keyframes: keyframes,
+      currentKeyFrameIndex: index,
+    };
+    s.cycle()
   },
 };
 const CLICK: ClickInputHandler = {
@@ -223,16 +234,16 @@ export const TIMELINE: Mode = {
   frame: frame,
   inputHandlers: [CLICK, ENTER, ESC, mousedown, mouseup, MOVE, doubleClick],
   events: {
-    preModeInteract(s) {
-      if (s.activeMainFrameMode.name !== "NEUTRAL") {
-        toast("Be in NEUTRAL before editing the timeline.");
-        return false;
-      }
-      return true;
-    },
     modeEnter(s) {
       currentKeyframe = createKeyframePoint(5, s.activeBottomBarMode, []);
       currentKeyframe.point.classList.add("active");
+      if (!s.data["bottom-bar"]) {
+        s.data["bottom-bar"] = {
+          duration: duration,
+          keyframes: keyframes,
+          currentKeyFrameIndex: 0,
+        };
+      }
     },
   },
 };

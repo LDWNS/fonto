@@ -17,7 +17,7 @@ import {
   type UpdateAttributeEvent,
   type Mode,
 } from "../types";
-import { EditPointType  } from "../types/geometry";
+import { EditPointType } from "../types/geometry";
 
 let movingPoint: EditPoint | null;
 let currentPath: EditableSVGElement | null;
@@ -101,38 +101,6 @@ const updateRightContainer = () => {
   }
 };
 
-const modeExit = (s: App) => {
-  const nodes = s.activeMainFrameMode.frame.querySelectorAll("[data-edit]");
-  if (nodes) nodes.forEach((n) => n.remove());
-  movingPoint = null;
-  currentPath = null;
-  (document.getElementById("rightContainer") as HTMLDivElement).textContent =
-    "";
-};
-const modeEnter = (s: App) => {
-  let editNodes = s.activeMainFrameMode.frame.childNodes
-    .entries()
-    .filter(([_, node]) => isEditableSVGElement(node))
-    .map(([_, node]) => node as EditableSVGElement)
-    .toArray();
-  if (s.selectedNodes.length > 0) {
-    editNodes = s.selectedNodes;
-  }
-  editNodes.forEach((node) => {
-    const x = node.getEditPoints();
-    x.forEach((ep) => {
-      s.activeMainFrameMode.frame.appendChild(ep);
-      if (ep.anchorLine) {
-        s.activeMainFrameMode.frame.appendChild(ep.anchorLine);
-      }
-    });
-  });
-  loadRightContainer(editNodes);
-  document.addEventListener("updateattribute", (e: UpdateAttributeEvent) => {
-    const item = document.querySelector("#" + e.detail.id);
-    item?.setAttribute(e.detail.key, e.detail.value);
-  });
-};
 const frame = createSVGFrame();
 const rightContainer = createRightContainer();
 export const EDIT_MODE: Mode = {
@@ -140,9 +108,44 @@ export const EDIT_MODE: Mode = {
   frame: frame,
   modeKey: "e",
   rightContainer: rightContainer,
+  alwaysAvailable: true,
   events: {
-    modeEnter: modeEnter,
-    modeExit: modeExit,
+    modeEnter: (s: App) => {
+      let editNodes = s.activeMainFrameMode.frame.childNodes
+        .entries()
+        .filter(([_, node]) => isEditableSVGElement(node))
+        .map(([_, node]) => node as EditableSVGElement)
+        .toArray();
+      if (s.selectedNodes.length > 0) {
+        editNodes = s.selectedNodes;
+      }
+      editNodes.forEach((node) => {
+        const x = node.getEditPoints();
+        x.forEach((ep) => {
+          s.activeMainFrameMode.frame.appendChild(ep);
+          if (ep.anchorLine) {
+            s.activeMainFrameMode.frame.appendChild(ep.anchorLine);
+          }
+        });
+      });
+      loadRightContainer(editNodes);
+      document.addEventListener(
+        "updateattribute",
+        (e: UpdateAttributeEvent) => {
+          const item = document.querySelector("#" + e.detail.id);
+          item?.setAttribute(e.detail.key, e.detail.value);
+        }
+      );
+    },
+    modeExit: (s: App) => {
+      const nodes = s.activeMainFrameMode.frame.querySelectorAll("[data-edit]");
+      if (nodes) nodes.forEach((n) => n.remove());
+      movingPoint = null;
+      currentPath = null;
+      (
+        document.getElementById("rightContainer") as HTMLDivElement
+      ).textContent = "";
+    },
   },
   inputHandlers: [ESC, mousedown, MOVE, mouseup, dblclick],
   subModes: [],

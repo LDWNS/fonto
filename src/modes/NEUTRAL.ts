@@ -27,7 +27,9 @@ const space: KeydownInputHandler = {
         .querySelector("animate")!
         .addEventListener("endEvent", (_) => {
           if (isActive) {
-            s.setActiveModeId("NEUTRAL");
+            s.mainModeHistory.pop();
+            const targetMode = s.mainModeHistory[s.mainModeHistory.length - 1]; // <- peek previous mode
+            s.setActiveMode(targetMode);
           }
           isActive = true;
         });
