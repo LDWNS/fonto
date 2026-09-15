@@ -1,12 +1,13 @@
-import { createSVGFrame } from "../framecreator";
+import { EditableAttributeList } from "../elements/EditableAttributeList";
+import { createRightContainer, createSVGFrame } from "../framecreator";
 import {
   isEditableSVGElement,
   isEditPoint,
   pointerToSvgCoords,
 } from "../helper";
 import { ESC } from "../keyhelper";
+import type { App } from "../state";
 import {
-  type KeydownInputHandler,
   type MousemoveInputHandler,
   type EditPoint,
   type MousedownInputHandler,
@@ -15,8 +16,8 @@ import {
   type DblClickInputHandler,
 } from "../types";
 import { EditPointType } from "../types/geometry";
+import type { UpdateAttributeEvent } from "../types/handlermethods";
 import type { Mode } from "../types/mode";
-import { SELECT_MODE } from "./SELECT";
 
 let movingPoint: EditPoint | null;
 let currentPath: EditableSVGElement | null;
@@ -36,6 +37,7 @@ const MOVE: MousemoveInputHandler = {
     if (movingPoint!.anchorLine) {
       movingPoint!.anchorLine.update({ x2: x, y2: y });
     }
+    updateRightContainer();
     return;
   },
 };
@@ -72,38 +74,76 @@ const dblclick: DblClickInputHandler = {
   },
 };
 
+const loadRightContainer = (editNodes: EditableSVGElement[]) => {
+  const rightContainer = document.getElementById(
+    "rightContainer"
+  ) as HTMLDivElement;
+  editNodes.forEach((en) => {
+    // map to element to edit attributes
+    // add elements to rightContainer
+    // make sure to add listeners
+    const el = document.createElement("editable-list") as EditableAttributeList;
+    el.setAttribute("title", en.id);
+
+    rightContainer.appendChild(el);
+    el.renderList(en.attributes);
+  });
+};
+
+const updateRightContainer = () => {
+  if (currentPath) {
+    const item = document.querySelector(
+      `editable-list[title="${currentPath.id}"]`
+    );
+    if (item) {
+      (item as EditableAttributeList).renderList(currentPath.attributes);
+    }
+  }
+};
+
+const modeExit = (s: App) => {
+  const nodes = s.activeMainFrameMode.frame.querySelectorAll("[data-edit]");
+  if (nodes) nodes.forEach((n) => n.remove());
+  movingPoint = null;
+  currentPath = null;
+  (document.getElementById("rightContainer") as HTMLDivElement).textContent =
+    "";
+};
+const modeEnter = (s: App) => {
+  let editNodes = s.activeMainFrameMode.frame.childNodes
+    .entries()
+    .filter(([_, node]) => isEditableSVGElement(node))
+    .map(([_, node]) => node as EditableSVGElement)
+    .toArray();
+  if (s.selectedNodes.length > 0) {
+    editNodes = s.selectedNodes;
+  }
+  editNodes.forEach((node) => {
+    const x = node.getEditPoints();
+    x.forEach((ep) => {
+      s.activeMainFrameMode.frame.appendChild(ep);
+      if (ep.anchorLine) {
+        s.activeMainFrameMode.frame.appendChild(ep.anchorLine);
+      }
+    });
+  });
+  loadRightContainer(editNodes);
+  document.addEventListener("updateattribute", (e: UpdateAttributeEvent) => {
+    const item = document.querySelector("#" + e.detail.id);
+    item?.setAttribute(e.detail.key, e.detail.value);
+  });
+};
 const frame = createSVGFrame();
+const rightContainer = createRightContainer();
 export const EDIT_MODE: Mode = {
   name: "EDIT",
   frame: frame,
   modeKey: "e",
+  rightContainer: rightContainer,
   events: {
-    modeEnter: (s) => {
-      let editNodes = s.activeMainFrameMode.frame.childNodes
-        .entries()
-        .filter(([_, node]) => isEditableSVGElement(node))
-        .map(([_, node]) => node as EditableSVGElement)
-        .toArray();
-      if (s.selectedNodes.length > 0) {
-        editNodes = s.selectedNodes;
-      }
-      editNodes.forEach((node) => {
-        const x = node.getEditPoints();
-        x.forEach((ep) => {
-          s.activeMainFrameMode.frame.appendChild(ep);
-          if (ep.anchorLine) {
-            s.activeMainFrameMode.frame.appendChild(ep.anchorLine);
-          }
-        });
-      });
-    },
-    modeExit: (s) => {
-      const nodes = s.activeMainFrameMode.frame.querySelectorAll("[data-edit]");
-      if (nodes) nodes.forEach((n) => n.remove());
-      movingPoint = null;
-      currentPath = null;
-    },
+    modeEnter: modeEnter,
+    modeExit: modeExit,
   },
   inputHandlers: [ESC, mousedown, MOVE, mouseup, dblclick],
-  subModes: [SELECT_MODE],
+  subModes: [],
 };

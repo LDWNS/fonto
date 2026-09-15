@@ -1,11 +1,7 @@
 import { createSVGFrame } from "../framecreator";
 import { isEditableSVGElement } from "../helper";
 import { ESC } from "../keyhelper";
-import type {
-  ClickInputHandler,
-  EditableSVGElement,
-  KeydownInputHandler,
-} from "../types";
+import type { ClickInputHandler, EditableSVGElement } from "../types";
 import type { Mode } from "../types/mode";
 import { EDIT_MODE } from "./EDIT";
 

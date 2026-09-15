@@ -5,7 +5,6 @@ import { createLine } from "../shapes/line";
 import type {
   ClickInputHandler,
   Coord,
-  KeydownInputHandler,
   MousemoveInputHandler,
 } from "../types";
 import type { Mode } from "../types/mode";

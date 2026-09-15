@@ -5,6 +5,7 @@ export type Mode = {
   name: string;
   inputHandlers: InputHandler | InputHandler[];
   frame: SVGElement | HTMLElement;
+  rightContainer?: SVGElement | HTMLElement;
   events?: LifeCycleHandlers;
   color?: string;
   modeKey?: string;

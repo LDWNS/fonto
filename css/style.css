@@ -182,3 +182,8 @@ label {
     -webkit-appearance: textfield;
   }
 }
+#rightContainer {
+  position: absolute;
+  right: 100%;
+  top: 0;
+}
