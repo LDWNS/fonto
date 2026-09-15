@@ -117,8 +117,20 @@ function createAnimation(
     "http://www.w3.org/2000/svg",
     "path"
   );
+  pathNode.setAttribute(
+    "fill",
+    this.attributes.getNamedItem("fill")?.value ?? "none"
+  );
+  pathNode.setAttribute(
+    "stroke",
+    this.attributes.getNamedItem("stroke")?.value ?? "#333"
+  );
   pathNode.setAttribute("d", this.initD);
   pathNode.setAttribute("keyTimes", this.keyTimes);
+  for (let i = 0; i < this.attributes.length; i++) {
+    const { name, value } = this.attributes.item(i)!;
+    pathNode.setAttribute(name, value);
+  }
   pathNode.appendChild(createAnimateNode("d", this.d, duration, this.keyTimes));
   return pathNode;
 }
@@ -146,6 +158,7 @@ export function setPathMethods(path: SVGPathElement) {
   path.getEditPoints = getEditPoints;
   path.toggleSegmentType = toggleSegmentType;
   path.getAnimationAttributes = getAnimationAttributes;
+  path.animatedProperties = new Set();
   return path;
 }
 export function createPath(initCoord: Coord) {

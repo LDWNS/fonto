@@ -45,10 +45,18 @@ function createAnimation(
   lineNode.setAttribute("y1", this.initY1);
   lineNode.setAttribute("x2", this.initX2);
   lineNode.setAttribute("y2", this.initY2);
-  lineNode.appendChild(createAnimateNode("x1", this.x1, duration, this.keyTimes));
-  lineNode.appendChild(createAnimateNode("y1", this.y1, duration, this.keyTimes));
-  lineNode.appendChild(createAnimateNode("x2", this.x2, duration, this.keyTimes));
-  lineNode.appendChild(createAnimateNode("y2", this.y2, duration, this.keyTimes));
+  lineNode.appendChild(
+    createAnimateNode("x1", this.x1, duration, this.keyTimes)
+  );
+  lineNode.appendChild(
+    createAnimateNode("y1", this.y1, duration, this.keyTimes)
+  );
+  lineNode.appendChild(
+    createAnimateNode("x2", this.x2, duration, this.keyTimes)
+  );
+  lineNode.appendChild(
+    createAnimateNode("y2", this.y2, duration, this.keyTimes)
+  );
   Object.entries(this.attributes).forEach(([_, value]) => {
     lineNode.setAttribute(value.nodeName, value.nodeValue ?? "true");
   });
@@ -87,6 +95,7 @@ export function setLineMethods(line: SVGLineElement) {
   line.edit = edit;
   line.getEditPoints = getEditPoints;
   line.getAnimationAttributes = getAnimationAttributes;
+  line.animatedProperties = new Set();
   return line;
 }
 export function createLine(initCoords: CoordPair) {

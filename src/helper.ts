@@ -11,7 +11,7 @@ function pointerToSvgCoords<P extends MouseEvent>(
   { clientX, clientY }: P,
   { left, top }: DOMRect
 ) {
-  return { x: clientX - left, y: clientY - top };
+  return { x: Math.round(clientX - left), y: Math.round(clientY - top) };
 }
 
 function isEditPoint(item: any): item is EditPoint {

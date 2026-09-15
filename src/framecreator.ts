@@ -9,6 +9,19 @@ export function createSVGFrame() {
   frame.setAttribute("draggable", "false");
   return frame;
 }
+export function createRightContainer() {
+  const frame = document.createElement("div");
+  return frame;
+}
+export function createRightContainerElement(
+  id: string,
+  attributes: Map<string, string>
+) {
+  const frame = document.createElement("div");
+  frame.setAttribute("id", "rce-" + id);
+  attributes.entries().forEach((k, v) => {});
+  return frame;
+}
 export function createTextAreaFrame() {
   // <textarea rows="30" cols="20" class="hidden"></textarea>
   const frame = document.createElement("textarea");

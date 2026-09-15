@@ -1,4 +1,5 @@
 import { App } from "../state";
+import type { UpdateAttributeEvent } from "./mode";
 
 export interface BaseInputHandler<K extends keyof DocumentEventMap> {
   type: K;
@@ -25,4 +26,17 @@ export interface LifeCycleHandlers {
   preModeInteract?: (state: App) => boolean | void;
   modeExit?: (state: App) => boolean | void;
   modeEnter?: (state: App) => boolean | void;
+}
+declare global {
+  interface DocumentEventMap {
+    updateattribute: UpdateAttributeEvent;
+  }
+}
+export interface UpdateAttributeEvent extends FormDataEvent {
+  detail: {
+    id: string;
+    key: string;
+    value: string;
+    animate: boolean;
+  };
 }

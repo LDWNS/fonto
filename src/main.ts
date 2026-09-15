@@ -3,16 +3,19 @@ import { DRAW_LINE_MODE } from "./modes/DRAW_LINE";
 import { DRAW_PATH_MODE } from "./modes/DRAW_PATH";
 import { EDIT_MODE } from "./modes/EDIT";
 import { NEUTRAL_MODE } from "./modes/NEUTRAL";
-import { SELECT_MODE } from "./modes/SELECT";
 import { TEXT_INPUT } from "./modes/TEXT_INPUT";
 import { TIMELINE } from "./modes/TIMELINE";
 import { PLAY } from "./modes/PLAY";
 import { App } from "./state";
+import { EditableAttributeList } from "./elements/EditableAttributeList";
+import { EditWord } from "./elements/EditWord";
+
+customElements.define("editable-list", EditableAttributeList);
+customElements.define("edit-word", EditWord);
 
 new App({
   mainFrame: [
     NEUTRAL_MODE,
-    SELECT_MODE,
     DRAW_LINE_MODE,
     EDIT_MODE,
     DRAW_CIRCLE_MODE,
