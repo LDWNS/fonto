@@ -1,4 +1,4 @@
-import type { UpdateAttributeEvent } from "../types/mode";
+import type { UpdateAttributeEvent } from "../types/handlermethods";
 
 export class EditWord extends HTMLElement {
   constructor() {
