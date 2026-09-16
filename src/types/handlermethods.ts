@@ -29,6 +29,9 @@ declare global {
   interface DocumentEventMap {
     updateattribute: UpdateAttributeEvent;
   }
+  interface HTMLElementEventMap {
+    updateattribute: UpdateAttributeEvent;
+  }
 }
 export interface UpdateAttributeEvent extends FormDataEvent {
   detail: {

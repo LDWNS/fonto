@@ -68,22 +68,25 @@ export class EditableAttributeList extends HTMLElement {
     this.addListItem = this.addListItem.bind(this);
     this.handleRemoveItemListeners = this.handleRemoveItemListeners.bind(this);
     this.removeListItem = this.removeListItem.bind(this);
-    document.addEventListener("updateattribute", (ev: UpdateAttributeEvent) => {
-      const item: EditableSVGElement | null = document.querySelector(
-        `#${ev.detail.id}`
-      );
-      if (item) {
-        item.setAttribute(ev.detail.key, ev.detail.value);
-        if (ev.detail.animate) {
-          item.animatedProperties.add(ev.detail.key);
-          this.activated.push(ev.detail.key);
-        } else {
-          item.animatedProperties.delete(ev.detail.key);
-          this.activated = this.activated.filter((el) => el != ev.detail.key);
+    editableListContainer.addEventListener(
+      "updateattribute",
+      (ev: UpdateAttributeEvent) => {
+        const item: EditableSVGElement | null = document.querySelector(
+          `#${ev.detail.id}`
+        );
+        if (item) {
+          item.setAttribute(ev.detail.key, ev.detail.value);
+          if (ev.detail.animate) {
+            item.animatedProperties.add(ev.detail.key);
+            this.activated.push(ev.detail.key);
+          } else {
+            item.animatedProperties.delete(ev.detail.key);
+            this.activated = this.activated.filter((el) => el != ev.detail.key);
+          }
+          this.renderList(item.attributes);
         }
-        this.renderList(item.attributes);
       }
-    });
+    );
 
     if (attrs) this.renderList(attrs);
 
