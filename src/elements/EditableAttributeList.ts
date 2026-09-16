@@ -102,6 +102,7 @@ export class EditableAttributeList extends HTMLElement {
       }
       const li = document.createElement("li");
       const isPinned = name.includes("x") || name.includes("y") || name === "r";
+      const isAnimated = this.activated.includes(name);
       if (isPinned) {
         const col3 = document.createElement("span");
         col3.className = "col-3";
@@ -109,14 +110,14 @@ export class EditableAttributeList extends HTMLElement {
         this.relatedAttributes.set(name, col3);
         li.append(col3);
       } else {
-        li.innerHTML = `<edit-word class="col-3" data-id="${id}" data-key="${name}" data-value>${value}</edit-word>`;
+        li.innerHTML = `<edit-word class="col-3" data-id="${id}" data-key="${name}" data-animate="${isAnimated}" data-value>${value}</edit-word>`;
       }
       const checkbox = document.createElement("input");
       checkbox.type = "checkbox";
       checkbox.className = "col-1";
       checkbox.name = `${id}-${name}`;
       checkbox.id = `${id}-${name}`;
-      checkbox.checked = this.activated.includes(name);
+      checkbox.checked = isAnimated;
       checkbox.addEventListener("change", (_) => {
         const customEvent = new CustomEvent("updateattribute", {
           bubbles: true,

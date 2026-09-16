@@ -41,7 +41,12 @@ export class EditWord extends HTMLElement {
       const customEvent = new CustomEvent("updateattribute", {
         bubbles: true,
         composed: true,
-        detail: { id: this.dataId(), key: this.dataKey(), value: input.value },
+        detail: {
+          id: this.dataId(),
+          key: this.dataKey(),
+          value: input.value,
+          animate: this.dataAnimate(),
+        },
       } as UpdateAttributeEvent);
       this.dispatchEvent(customEvent);
     });
@@ -59,5 +64,8 @@ export class EditWord extends HTMLElement {
   }
   dataKey() {
     return this.dataset.key ?? "";
+  }
+  dataAnimate() {
+    return this.dataset.animate === "true";
   }
 }
