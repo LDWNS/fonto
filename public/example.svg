@@ -1,0 +1,27 @@
+<svg
+  id="svg-canvas" width="500" height="500" draggable="false"
+  xmlns="http://www.w3.org/2000/svg"
+  xmlns:svg="http://www.w3.org/2000/svg">
+  <circle cx="190;190;190" cy="256;256;256" r="157;35;157" fill="black;white;black"
+    id="mu45l2f5ge5t8wwgvg" stroke="#333">
+    <animate attributeName="cx" values="190;190;190" dur="1361.4457831325303ms"
+      keyTimes="0;0.7079646017699115;1" repeatCount="indefinite" begin="0s"></animate>
+    <animate attributeName="cy" values="256;256;256" dur="1361.4457831325303ms"
+      keyTimes="0;0.7079646017699115;1" repeatCount="indefinite" begin="0s"></animate>
+    <animate attributeName="r" values="157;35;157" dur="1361.4457831325303ms"
+      keyTimes="0;0.7079646017699115;1" repeatCount="indefinite" begin="0s"></animate>
+    <animate attributeName="fill" values="black;white;black" dur="1361.4457831325303ms"
+      keyTimes="0;0.7079646017699115;1" repeatCount="indefinite" begin="0s"></animate>
+  </circle>
+  <circle cx="254;144;254" cy="307;210;307" r="55;144;55" fill="white;transparent;white"
+    id="mu45l4cmbzv1pdhpxxn" stroke="#333">
+    <animate attributeName="cx" values="254;144;254" dur="1361.4457831325303ms"
+      keyTimes="0;0.7079646017699115;1" repeatCount="indefinite" begin="0s"></animate>
+    <animate attributeName="cy" values="307;210;307" dur="1361.4457831325303ms"
+      keyTimes="0;0.7079646017699115;1" repeatCount="indefinite" begin="0s"></animate>
+    <animate attributeName="r" values="55;144;55" dur="1361.4457831325303ms"
+      keyTimes="0;0.7079646017699115;1" repeatCount="indefinite" begin="0s"></animate>
+    <animate attributeName="fill" values="white;transparent;white" dur="1361.4457831325303ms"
+      keyTimes="0;0.7079646017699115;1" repeatCount="indefinite" begin="0s"></animate>
+  </circle>
+</svg>
