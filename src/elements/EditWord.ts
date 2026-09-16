@@ -22,7 +22,7 @@ export class EditWord extends HTMLElement {
     form.appendChild(input);
     form.style.display = "none";
     span.style.display = "inline-block";
-    input.style.width = span.clientWidth + "px";
+    input.style.width = "3rem";
 
     this.setAttribute("tabindex", "0");
     input.setAttribute("required", "required");
@@ -52,7 +52,6 @@ export class EditWord extends HTMLElement {
       span.style.display = "inline-block";
       form.style.display = "none";
       span.textContent = input.value;
-      input.style.width = span.clientWidth + "px";
     }
   }
   dataId() {

@@ -26,7 +26,7 @@ export class EditableAttributeList extends HTMLElement {
           }
           li {
             display: grid;
-            grid-template-columns: 1.2rem 7rem auto;
+            grid-template-columns: 1.2rem 7rem 3.5rem;
             .col-1 {
               grid-column: 1;
             }
@@ -101,46 +101,42 @@ export class EditableAttributeList extends HTMLElement {
         continue;
       }
       const li = document.createElement("li");
-      if (name.includes("x") || name.includes("y") || name === "r") {
-        li.dataset.attribute = name;
-        const span1 = document.createElement("span");
-        span1.className = "col-2";
-        span1.innerText = name + ":";
-        const span2 = document.createElement("span");
-        span2.className = "col-3";
-        span2.innerText = value;
-        this.relatedAttributes.set(name, span2);
-        li.append(span1, span2);
+      const isPinned = name.includes("x") || name.includes("y") || name === "r";
+      if (isPinned) {
+        const col3 = document.createElement("span");
+        col3.className = "col-3";
+        col3.innerText = value;
+        this.relatedAttributes.set(name, col3);
+        li.append(col3);
       } else {
-        const checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.className = "col-1";
-        checkbox.name = `${id}-${name}`;
-        checkbox.id = `${id}-${name}`;
-        checkbox.checked = this.activated.includes(name);
-        checkbox.addEventListener("change", (_) => {
-          const customEvent = new CustomEvent("updateattribute", {
-            bubbles: true,
-            composed: true,
-            detail: {
-              id: id,
-              key: name,
-              value: value,
-              animate: checkbox.checked,
-            },
-          } as UpdateAttributeEvent);
-          checkbox.dispatchEvent(customEvent);
-        });
-        const label = document.createElement("label");
-        label.className = "col-2";
-        label.setAttribute("for", `${id}-${name}`);
-        label.innerText = name + ": ";
-        if (!this.actiavatable) {
-          checkbox.disabled = true;
-        }
         li.innerHTML = `<edit-word class="col-3" data-id="${id}" data-key="${name}" data-value>${value}</edit-word>`;
-        li.prepend(checkbox, label);
       }
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.className = "col-1";
+      checkbox.name = `${id}-${name}`;
+      checkbox.id = `${id}-${name}`;
+      checkbox.checked = this.activated.includes(name);
+      checkbox.addEventListener("change", (_) => {
+        const customEvent = new CustomEvent("updateattribute", {
+          bubbles: true,
+          composed: true,
+          detail: {
+            id: id,
+            key: name,
+            value: value,
+            animate: checkbox.checked,
+          },
+        } as UpdateAttributeEvent);
+        checkbox.dispatchEvent(customEvent);
+      });
+      checkbox.disabled = !this.activatable || isPinned;
+      const label = document.createElement("label");
+      label.className = "col-2";
+      label.setAttribute("for", `${id}-${name}`);
+      label.innerText = name + ": ";
+
+      li.prepend(checkbox, label);
       this.itemList?.appendChild(li);
     }
   }
@@ -207,7 +203,7 @@ export class EditableAttributeList extends HTMLElement {
   get title() {
     return this.getAttribute("title") || "";
   }
-  get actiavatable() {
+  get activatable() {
     return this.getAttribute("activatable") === "true" ? true : false;
   }
 
