@@ -20,16 +20,18 @@ declare global {
 interface Editable {
   getEditPoints(): EditPoint[];
   edit(editPoint: EditPoint, { x, y }: Coord, dx: number, dy: number): void;
-  getAnimationAttributes(
-    timing: number,
-    animationAttributes?: AnimationAttributes
-  ): AnimationAttributes;
-  animatedProperties: Set<String>;
+  getRelatedAttributes(editPoint: EditPoint): { attrs: string[]; values: number[] };
+  animatedProperties: Set<string>;
 }
-export type AnimationAttributes =
-  | SVGLineAnimationAttributes
-  | SVGCircleAnimationAttributes
-  | SVGPathAnimationAttributes;
+export interface AnimationAttributes {
+  animatedAttributes: string[],
+  values: string[],
+  initValues: string[],
+  keyTimes: string,
+  attributes: NamedNodeMap;
+  node: SVGElement;
+  createAnimation(node: SVGElement,duration: string): SVGElement;
+}
 export interface SVGLineAnimationAttributes {
   x1: string;
   y1: string;

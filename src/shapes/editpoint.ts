@@ -103,7 +103,6 @@ function updatedAnchoredPoints(this: EditPoint, dx: number, dy: number) {
   }
   return this;
 }
-
 function addAnchoredPoint(
   this: EditPoint,
   editPoint: EditPoint,

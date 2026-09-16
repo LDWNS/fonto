@@ -70,6 +70,7 @@ const mousedown: MousedownInputHandler = {
       keyframes: keyframes,
       currentKeyFrameIndex: index,
     };
+    s.cycle()
   },
 };
 const mouseup: MouseupInputHandler = {
@@ -114,7 +115,7 @@ const doubleClick: DblClickInputHandler = {
       keyframes: keyframes,
       currentKeyFrameIndex: index,
     };
-    s.cycle()
+    s.cycle();
   },
 };
 const CLICK: ClickInputHandler = {
@@ -123,7 +124,7 @@ const CLICK: ClickInputHandler = {
     !isEditPoint(e.target) &&
     (s.activeMainFrameMode.name === "NEUTRAL" ||
       !toast("Mode must be NEUTRAL to edit timeline.")),
-  handler: (e, _) => {
+  handler: (e, s) => {
     if ((e.target as HTMLElement).id === "animationDuration") {
       toggleDurationInput();
       return;
@@ -153,6 +154,7 @@ function saveState(m: Mode) {
           `Tag not supported by TIMELINE: <${(clone as SVGElement).tagName}>`
         );
     }
+    clone.animatedProperties = (node as EditableSVGElement).animatedProperties;
     if (isEditableSVGElement(clone)) {
       newChildren.push(clone);
     }

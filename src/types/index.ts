@@ -21,4 +21,5 @@ export type {
   EditPointType,
   EditableSVGElement,
   SVGPathSegment,
+  AnimationAttributes,
 } from "./geometry.ts";

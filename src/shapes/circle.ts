@@ -1,10 +1,7 @@
 import { createEditPoint } from "./editpoint";
-import { createAnimateNode, distance, uid } from "../helper";
+import { distance, uid } from "../helper";
 import type { Coord, CoordPair, EditPoint } from "../types";
-import {
-  EditPointType,
-  type SVGCircleAnimationAttributes,
-} from "../types/geometry";
+import { EditPointType } from "../types/geometry";
 
 function update(this: SVGCircleElement, { x1, y1, x2, y2 }: CoordPair) {
   if (x1 !== undefined) this.setAttribute("cx", x1.toString());
@@ -43,13 +40,32 @@ function getEditPoints(this: SVGCircleElement) {
     .toggleAnchorLine();
   return [ep1, ep2];
 }
+function getRelatedAttributes(
+  this: SVGCircleElement,
+  ep: EditPoint
+): { attrs: string[]; values: number[] } {
+  switch (ep.type) {
+    case EditPointType.CIRCLE_1:
+      return {
+        attrs: ["x1", "y1"],
+        values: [this.cx.baseVal.value, this.cy.baseVal.value],
+      };
+    case EditPointType.CIRCLE_2:
+      return {
+        attrs: ["x2", "y2", "r"],
+        values: [this.rx, this.rx, parseInt(this.getAttribute("r") ?? "-1")],
+      };
+    default:
+      return { attrs: [], values: [] };
+  }
+}
 
 export function setCircleMethods(circle: SVGCircleElement) {
   circle.update = update;
   circle.edit = edit;
   circle.getEditPoints = getEditPoints;
-  circle.getAnimationAttributes = getAnimationAttributes;
-  circle.animatedProperties = new Set();
+  circle.getRelatedAttributes = getRelatedAttributes;
+  circle.animatedProperties = new Set(["cx", "cy", "r"]);
   return circle;
 }
 
@@ -67,54 +83,4 @@ export function createCircle(initCoords: CoordPair) {
   circle.setAttribute("fill", "transparent");
 
   return circle;
-}
-function createAnimation(
-  this: SVGCircleAnimationAttributes,
-  duration: string
-): SVGElement {
-  const circleNode = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "circle"
-  );
-  circleNode.setAttribute("cx", this.initCx);
-  circleNode.setAttribute("cy", this.initCy);
-  circleNode.setAttribute("r", this.initR);
-  circleNode.setAttribute("keyTimes", this.keyTimes);
-  circleNode.appendChild(
-    createAnimateNode("cx", this.cx, duration, this.keyTimes)
-  );
-  circleNode.appendChild(
-    createAnimateNode("cy", this.cy, duration, this.keyTimes)
-  );
-  circleNode.appendChild(
-    createAnimateNode("r", this.r, duration, this.keyTimes)
-  );
-  Object.entries(this.attributes).forEach(([_, value]) => {
-    circleNode.setAttribute(value.nodeName, value.nodeValue ?? "true");
-  });
-  return circleNode;
-}
-function getAnimationAttributes(
-  this: SVGCircleElement,
-  timing: number,
-  animationAttr?: SVGCircleAnimationAttributes
-): SVGCircleAnimationAttributes {
-  if (!animationAttr) {
-    return {
-      cx: this.cx.baseVal.valueAsString,
-      cy: this.cy.baseVal.valueAsString,
-      r: this.r.baseVal.valueAsString,
-      initCx: this.cx.baseVal.valueAsString,
-      initCy: this.cy.baseVal.valueAsString,
-      initR: this.r.baseVal.valueAsString,
-      attributes: this.attributes,
-      keyTimes: "" + timing,
-      createAnimation: createAnimation,
-    };
-  }
-  animationAttr.cx += ";" + this.cx.baseVal.valueAsString;
-  animationAttr.cy += ";" + this.cy.baseVal.valueAsString;
-  animationAttr.r += ";" + this.r.baseVal.valueAsString;
-  animationAttr.keyTimes += ";" + timing;
-  return animationAttr;
 }

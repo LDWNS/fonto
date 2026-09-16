@@ -1,10 +1,7 @@
 import { createEditPoint } from "./editpoint";
-import { createAnimateNode, uid } from "../helper";
+import { uid } from "../helper";
 import type { Coord, CoordPair, EditPoint } from "../types";
-import {
-  EditPointType,
-  type SVGLineAnimationAttributes,
-} from "../types/geometry";
+import { EditPointType } from "../types/geometry";
 
 function update(this: SVGLineElement, { x1, y1, x2, y2 }: CoordPair) {
   if (x1) this.setAttribute("x1", x1.toString());
@@ -33,69 +30,32 @@ function getEditPoints(this: SVGLineElement) {
   });
   return [ep1, ep2];
 }
-function createAnimation(
-  this: SVGLineAnimationAttributes,
-  duration: string
-): SVGElement {
-  const lineNode = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "line"
-  );
-  lineNode.setAttribute("x1", this.initX1);
-  lineNode.setAttribute("y1", this.initY1);
-  lineNode.setAttribute("x2", this.initX2);
-  lineNode.setAttribute("y2", this.initY2);
-  lineNode.appendChild(
-    createAnimateNode("x1", this.x1, duration, this.keyTimes)
-  );
-  lineNode.appendChild(
-    createAnimateNode("y1", this.y1, duration, this.keyTimes)
-  );
-  lineNode.appendChild(
-    createAnimateNode("x2", this.x2, duration, this.keyTimes)
-  );
-  lineNode.appendChild(
-    createAnimateNode("y2", this.y2, duration, this.keyTimes)
-  );
-  Object.entries(this.attributes).forEach(([_, value]) => {
-    lineNode.setAttribute(value.nodeName, value.nodeValue ?? "true");
-  });
-  return lineNode;
-}
-function getAnimationAttributes(
+function getRelatedAttributes(
   this: SVGLineElement,
-  timing: number,
-  animationAttr?: SVGLineAnimationAttributes
-): SVGLineAnimationAttributes {
-  if (!animationAttr) {
-    return {
-      x1: this.x1.baseVal.valueAsString,
-      y1: this.y1.baseVal.valueAsString,
-      x2: this.x2.baseVal.valueAsString,
-      y2: this.y2.baseVal.valueAsString,
-      initX1: this.x1.baseVal.valueAsString,
-      initY1: this.y1.baseVal.valueAsString,
-      initX2: this.x2.baseVal.valueAsString,
-      initY2: this.y2.baseVal.valueAsString,
-      attributes: this.attributes,
-      keyTimes: "" + timing,
-      createAnimation: createAnimation,
-    };
+  ep: EditPoint
+): { attrs: string[]; values: number[] } {
+  switch (ep.type) {
+    case EditPointType.LINE_1:
+      return {
+        attrs: ["x1", "y1"],
+        values: [this.x1.baseVal.value, this.y1.baseVal.value],
+      };
+    case EditPointType.LINE_2:
+      return {
+        attrs: ["x2", "y2"],
+        values: [this.x2.baseVal.value, this.y2.baseVal.value],
+      };
+    default:
+      return { attrs: [], values: [] };
   }
-  animationAttr.x1 += ";" + this.x1.baseVal.valueAsString;
-  animationAttr.y1 += ";" + this.y1.baseVal.valueAsString;
-  animationAttr.x2 += ";" + this.x2.baseVal.valueAsString;
-  animationAttr.y2 += ";" + this.y2.baseVal.valueAsString;
-  animationAttr.keyTimes += ";" + timing;
-  return animationAttr;
 }
 
 export function setLineMethods(line: SVGLineElement) {
   line.update = update;
   line.edit = edit;
   line.getEditPoints = getEditPoints;
-  line.getAnimationAttributes = getAnimationAttributes;
-  line.animatedProperties = new Set();
+  line.getRelatedAttributes = getRelatedAttributes;
+  line.animatedProperties = new Set(["x1", "y1", "x2", "y2"]);
   return line;
 }
 export function createLine(initCoords: CoordPair) {

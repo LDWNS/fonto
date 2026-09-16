@@ -1,4 +1,4 @@
-import type { Coord, EditableSVGElement, EditPoint } from "./geometry";
+import type { Coord, EditableSVGElement, EditPoint } from ".";
 import type { InputHandler, LifeCycleHandlers } from "./handlermethods";
 
 export type Mode = {

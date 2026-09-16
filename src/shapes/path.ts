@@ -1,4 +1,4 @@
-import { createAnimateNode, pathSegmentToString, uid } from "../helper";
+import { pathSegmentToString, uid } from "../helper";
 import type {
   BaseSVGPathSegment,
   Coord,
@@ -7,10 +7,7 @@ import type {
   EditPoint,
   SVGPathSegment,
 } from "../types";
-import {
-  EditPointType,
-  type SVGPathAnimationAttributes,
-} from "../types/geometry";
+import { EditPointType } from "../types/geometry";
 import { createCSeg, createLSeg } from "./pathsegment";
 import type { App } from "../state";
 import {
@@ -69,6 +66,12 @@ function edit(this: SVGPathElement, ep: EditPoint, coord: Coord): void {
     this.setAttribute("d", pathString.trim());
   }
 }
+function getRelatedAttributes(
+  this: SVGCircleElement,
+  _: EditPoint
+): { attrs: string[]; values: number[] } {
+  return { attrs: [], values: [] };
+}
 function toggleSegmentType(this: SVGPathElement, s: App, ep: EditPoint): void {
   let pathString = "";
   this.pathSegs = this.pathSegs!.map((ps) => {
@@ -109,56 +112,13 @@ function toggleSegmentType(this: SVGPathElement, s: App, ep: EditPoint): void {
   });
   this.setAttribute("d", pathString.trim());
 }
-function createAnimation(
-  this: SVGPathAnimationAttributes,
-  duration: string
-): SVGElement {
-  const pathNode = document.createElementNS(
-    "http://www.w3.org/2000/svg",
-    "path"
-  );
-  pathNode.setAttribute(
-    "fill",
-    this.attributes.getNamedItem("fill")?.value ?? "none"
-  );
-  pathNode.setAttribute(
-    "stroke",
-    this.attributes.getNamedItem("stroke")?.value ?? "#333"
-  );
-  pathNode.setAttribute("d", this.initD);
-  pathNode.setAttribute("keyTimes", this.keyTimes);
-  for (let i = 0; i < this.attributes.length; i++) {
-    const { name, value } = this.attributes.item(i)!;
-    pathNode.setAttribute(name, value);
-  }
-  pathNode.appendChild(createAnimateNode("d", this.d, duration, this.keyTimes));
-  return pathNode;
-}
-function getAnimationAttributes(
-  this: SVGPathElement,
-  timing: number,
-  animationAttr?: SVGPathAnimationAttributes
-): SVGPathAnimationAttributes {
-  if (!animationAttr) {
-    return {
-      d: this.getAttribute("d")!,
-      initD: this.getAttribute("d")!,
-      keyTimes: "" + timing,
-      attributes: this.attributes,
-      createAnimation: createAnimation,
-    };
-  }
-  animationAttr.d += ";" + this.getAttribute("d")!;
-  animationAttr.keyTimes += ";" + timing;
-  return animationAttr;
-}
 export function setPathMethods(path: SVGPathElement) {
   path.update = update;
   path.edit = edit;
   path.getEditPoints = getEditPoints;
   path.toggleSegmentType = toggleSegmentType;
-  path.getAnimationAttributes = getAnimationAttributes;
-  path.animatedProperties = new Set();
+  path.getRelatedAttributes = getRelatedAttributes;
+  path.animatedProperties = new Set(["d"]);
   return path;
 }
 export function createPath(initCoord: Coord) {

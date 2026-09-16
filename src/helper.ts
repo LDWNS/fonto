@@ -1,11 +1,10 @@
-import type { EditableSVGElement, EditPoint } from "./types";
-import type { SVGPathSegment } from "./types/geometry";
+import type { EditableSVGElement, EditPoint, SVGPathSegment } from "./types";
 
 const uid = function () {
   return Date.now().toString(36) + Math.random().toString(36).substring(2);
 };
 const distance = (x1: number, y1: number, x2: number, y2: number) => {
-  return Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+  return Math.round(Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1)));
 };
 function pointerToSvgCoords<P extends MouseEvent>(
   { clientX, clientY }: P,

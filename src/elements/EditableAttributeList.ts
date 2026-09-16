@@ -5,8 +5,10 @@ export class EditableAttributeList extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this.itemList = null;
+    this.relatedAttributes = new Map();
     this.fullRender();
   }
+  activated: string[] = [];
   fullRender(attrs?: NamedNodeMap) {
     const editableListContainer = document.createElement("div");
 
@@ -22,7 +24,20 @@ export class EditableAttributeList extends HTMLElement {
             border: solid 1px #fff;
             padding: .5rem;
           }
-          li, div > div {
+          li {
+            display: grid;
+            grid-template-columns: 1.2rem 7rem auto;
+            .col-1 {
+              grid-column: 1;
+            }
+            .col-2 {
+              grid-column: 2;
+            }
+            .col-3 {
+              grid-column: 3;
+            }
+          }
+          div > div {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -53,7 +68,22 @@ export class EditableAttributeList extends HTMLElement {
     this.addListItem = this.addListItem.bind(this);
     this.handleRemoveItemListeners = this.handleRemoveItemListeners.bind(this);
     this.removeListItem = this.removeListItem.bind(this);
-    document.addEventListener("updateattribute", this.updateAttribute);
+    document.addEventListener("updateattribute", (ev: UpdateAttributeEvent) => {
+      const item: EditableSVGElement | null = document.querySelector(
+        `#${ev.detail.id}`
+      );
+      if (item) {
+        item.setAttribute(ev.detail.key, ev.detail.value);
+        if (ev.detail.animate) {
+          item.animatedProperties.add(ev.detail.key);
+          this.activated.push(ev.detail.key);
+        } else {
+          item.animatedProperties.delete(ev.detail.key);
+          this.activated = this.activated.filter((el) => el != ev.detail.key);
+        }
+        this.renderList(item.attributes);
+      }
+    });
 
     if (attrs) this.renderList(attrs);
 
@@ -61,7 +91,7 @@ export class EditableAttributeList extends HTMLElement {
     this.shadowRoot!.appendChild(editableListContainer);
   }
   renderList(attrs: NamedNodeMap) {
-    let innerHTML = ``;
+    this.itemList!.textContent = ``;
     let id = "";
     for (let i = 0; i < attrs.length; i++) {
       const { name, value } = attrs.item(i)!;
@@ -70,39 +100,66 @@ export class EditableAttributeList extends HTMLElement {
         id = value;
         continue;
       }
+      const li = document.createElement("li");
       if (name.includes("x") || name.includes("y") || name === "r") {
-        innerHTML += `
-          <li>
-            ${name}:<span data-id="${id}" data-key="${name}" data-value>${value}</span>
-          </li>`;
+        li.dataset.attribute = name;
+        const span1 = document.createElement("span");
+        span1.className = "col-2";
+        span1.innerText = name + ":";
+        const span2 = document.createElement("span");
+        span2.className = "col-3";
+        span2.innerText = value;
+        this.relatedAttributes.set(name, span2);
+        li.append(span1, span2);
       } else {
-        innerHTML += `
-          <li>
-            <label for="${id}-${name}">
-              <input type="checkbox" class="hidden" name="${id}-${name}" id="${id}-${name}" switch />
-              ${name}:
-            </label>
-            <edit-word data-id="${id}" data-key="${name}" data-value>${value}</edit-word>
-          </li>`;
+        const checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.className = "col-1";
+        checkbox.name = `${id}-${name}`;
+        checkbox.id = `${id}-${name}`;
+        checkbox.checked = this.activated.includes(name);
+        checkbox.addEventListener("change", (_) => {
+          const customEvent = new CustomEvent("updateattribute", {
+            bubbles: true,
+            composed: true,
+            detail: {
+              id: id,
+              key: name,
+              value: value,
+              animate: checkbox.checked,
+            },
+          } as UpdateAttributeEvent);
+          checkbox.dispatchEvent(customEvent);
+        });
+        const label = document.createElement("label");
+        label.className = "col-2";
+        label.setAttribute("for", `${id}-${name}`);
+        label.innerText = name + ": ";
+        if (!this.actiavatable) {
+          checkbox.disabled = true;
+        }
+        li.innerHTML = `<edit-word class="col-3" data-id="${id}" data-key="${name}" data-value>${value}</edit-word>`;
+        li.prepend(checkbox, label);
+      }
+      this.itemList?.appendChild(li);
+    }
+  }
+
+  updateAttribute(la: { attrs: string[]; values: number[] }) {
+    for (let i = 0; i < la.attrs.length; i++) {
+      const valueEl =
+        this.relatedAttributes.get(la.attrs[i]) ??
+        this.itemList?.querySelector(`[data-attribute=${la.attrs[i]}] .col-3`);
+      if (valueEl) {
+        if (la.attrs[i] === "r") {
+        } else {
+          valueEl.textContent = "" + la.values[i];
+        }
       }
     }
-    this.itemList!.innerHTML = innerHTML;
   }
-  updateAttribute(ev: UpdateAttributeEvent) {
-    const item: EditableSVGElement | null = document.querySelector(
-      `${ev.detail.id}`
-    );
-    if (item) {
-      item.setAttribute(ev.detail.key, ev.detail.value);
-      if (ev.detail.animate) {
-        item.animatedProperties.add(ev.detail.key);
-      } else {
-        item.animatedProperties.delete(ev.detail.key);
-      }
-      this.renderList(item.attributes);
-    }
-  }
-  static observedAttributes = ["title"];
+
+  static observedAttributes = ["title", "activateAble"];
   attributeChangedCallback(_: string, __: string, ___: string) {
     this.fullRender();
   }
@@ -131,6 +188,7 @@ export class EditableAttributeList extends HTMLElement {
     }
   }
   itemList: HTMLUListElement | null;
+  relatedAttributes: Map<string, HTMLSpanElement>;
   // fires after the element has been attached to the DOM
   connectedCallback() {
     const removeElementButtons = [
@@ -148,6 +206,9 @@ export class EditableAttributeList extends HTMLElement {
 
   get title() {
     return this.getAttribute("title") || "";
+  }
+  get actiavatable() {
+    return this.getAttribute("activatable") === "true" ? true : false;
   }
 
   get itemAttributes() {

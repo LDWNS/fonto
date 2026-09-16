@@ -37,7 +37,9 @@ const MOVE: MousemoveInputHandler = {
     if (movingPoint!.anchorLine) {
       movingPoint!.anchorLine.update({ x2: x, y2: y });
     }
-    updateRightContainer();
+    if (dx !== 0 || dy !== 0) {
+      updateRightContainer(movingPoint!);
+    }
     return;
   },
 };
@@ -74,7 +76,10 @@ const dblclick: DblClickInputHandler = {
   },
 };
 
-const loadRightContainer = (editNodes: EditableSVGElement[]) => {
+const loadRightContainer = (
+  editNodes: EditableSVGElement[],
+  activatable = true
+) => {
   const rightContainer = document.getElementById(
     "rightContainer"
   ) as HTMLDivElement;
@@ -84,19 +89,23 @@ const loadRightContainer = (editNodes: EditableSVGElement[]) => {
     // make sure to add listeners
     const el = document.createElement("editable-list") as EditableAttributeList;
     el.setAttribute("title", en.id);
+    el.setAttribute("activatable", "" + activatable);
+    el.activated = [...en.animatedProperties];
 
     rightContainer.appendChild(el);
     el.renderList(en.attributes);
   });
 };
 
-const updateRightContainer = () => {
+const updateRightContainer = (ep: EditPoint) => {
   if (currentPath) {
     const item = document.querySelector(
       `editable-list[title="${currentPath.id}"]`
     );
     if (item) {
-      (item as EditableAttributeList).renderList(currentPath.attributes);
+      (item as EditableAttributeList).updateAttribute(
+        currentPath.getRelatedAttributes(ep)
+      );
     }
   }
 };
@@ -128,7 +137,10 @@ export const EDIT_MODE: Mode = {
           }
         });
       });
-      loadRightContainer(editNodes);
+      loadRightContainer(
+        editNodes,
+        s.data["bottom-bar"]?.currentKeyFrameIndex === 0
+      );
       document.addEventListener(
         "updateattribute",
         (e: UpdateAttributeEvent) => {
