@@ -5,7 +5,6 @@ import { setCircleMethods } from "../shapes/circle";
 import { setLineMethods } from "../shapes/line";
 import { setPathMethods } from "../shapes/path";
 import type { Mode } from "../types";
-import DOMPurify from "dompurify";
 
 const frame = createTextAreaFrame();
 export const TEXT_INPUT: Mode = {
@@ -22,19 +21,11 @@ export const TEXT_INPUT: Mode = {
       }
     },
     modeExit(s) {
-      const x1 = DOMPurify.sanitize(
-        `<svg>${
-          (s.activeMainFrameMode.frame as HTMLTextAreaElement).value
-        }</svg>`,
-        {
-          USE_PROFILES: { svg: true, svgFilters: true },
-          FORBID_TAGS: ["script", "style", "foreignObject"],
-          FORBID_ATTR: ["xlink:href", "href"], // Only if you don't use <use> tags
-          ADD_ATTR: ["id"], // SVGs heavily rely on IDs for masks, gradients, and defs
-          RETURN_DOM: true,
-        }
-      ).firstChild as SVGElement; // returns <body><svg>...</svg></body> => firstChild
-      s.data["svg-canvas"] = x1.childNodes
+      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svg.innerHTML = (
+        s.activeMainFrameMode.frame as HTMLTextAreaElement
+      ).value;
+      s.data["svg-canvas"] = svg.childNodes
         .entries()
         .map(([_, node]) => {
           switch ((node as SVGElement).tagName.toLowerCase()) {

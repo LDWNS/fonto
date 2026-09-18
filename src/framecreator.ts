@@ -1,7 +1,7 @@
-import DOMPurify from "dompurify";
 import { dispatchUpdateAttribute, uid } from "./helper";
-import type { Coord } from "./types";
+import type { Coord, CoordPair } from "./types";
 import type { EditableAttributeList } from "./elements/EditableAttributeList";
+import { createLine } from "./shapes/line";
 export function createSVGFrame() {
   const frame = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   frame.setAttribute("id", "svg-canvas");
@@ -28,70 +28,97 @@ export function createTextAreaFrame() {
   frame.setAttribute("draggable", "false");
   return frame;
 }
-const timelineSVG = DOMPurify.sanitize(
-  `<svg 
-          id="timeline"
-          xmlns="http://www.w3.org/2000/svg" width="420" height="25">
-          <defs>
-            <marker
-              id="tick"
-              viewBox="0 0 2 10"
-              refX="1"
-              refY="5"
-              markerUnits="strokeWidth"
-              markerWidth="2"
-              markerHeight="10"
-            >
-              <line x1="1" y1="0" x2="1" y2="10" stroke="#333"></line>
-            </marker>
-            <marker
-              id="arrow"
-              viewBox="0 0 10 10"
-              refX="5"
-              refY="5"
-              markerUnits="strokeWidth"
-              markerWidth="10"
-              markerHeight="10"
-              orient="auto"
-            >
-              <line x1="0" y1="0" x2="10" y2="5" stroke="#333"></line>
-              <line x1="10" y1="5" x2="0" y2="10" stroke="#333"></line>
-              <line x1="0" y1="5" x2="10" y2="5" stroke="#333"></line>
-            </marker>
-          </defs>
-          <line 
-            x1="5" 
-            y1="8" 
-            x2="415" 
-            y2="8" 
-            stroke="#333" 
-            stroke-width="1.5px"
-            marker-start="url(#tick)"
-            marker-end="url(#arrow)"
-            ></line>
-        </svg>`,
-  {
-    USE_PROFILES: { svg: true, svgFilters: true },
-    FORBID_TAGS: ["script", "style", "foreignObject"],
-    FORBID_ATTR: ["xlink:href", "href"], // Only if you don't use <use> tags
-    ADD_ATTR: ["id"], // SVGs heavily rely on IDs for masks, gradients, and defs
-    RETURN_DOM: true,
+function createMarker(id: string, attributes: string[], lines: CoordPair[]) {
+  const marker = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "marker"
+  );
+  marker.id = id;
+  for (let i = 0; i < attributes.length; i += 2) {
+    const key = attributes[i];
+    const value = attributes[i + 1];
+    marker.setAttribute(key, value);
   }
-).firstChild as SVGElement;
-const inputField = DOMPurify.sanitize(
-  `<label id="animationDurationInput" class="hidden">
-  <span class="hidden"> animation duration</span>
-  <input type="number" name="animationDurationInput" value="1000">
-  <span>ms</span>
-</label>`,
-  {
-    USE_PROFILES: { html: true },
-    FORBID_TAGS: ["script", "style", "foreignObject"],
-    FORBID_ATTR: ["xlink:href", "href"], // Only if you don't use <use> tags
-    ADD_ATTR: ["id", "class"], // SVGs heavily rely on IDs for masks, gradients, and defs
-    RETURN_DOM: true,
-  }
-).firstChild as HTMLInputElement;
+  lines.forEach((line) => {
+    const lineEl = createLine(line);
+    lineEl.setAttribute("stroke-width", "1px");
+    marker.append(lineEl);
+  });
+  return marker;
+}
+const tickMarker = createMarker(
+  "tick",
+  [
+    "viewBox",
+    "0 0 2 10",
+    "refX",
+    "1",
+    "refY",
+    "5",
+    "markerUnits",
+    "strokeWidth",
+    "markerWidth",
+    "2",
+    "markerHeight",
+    "10",
+  ],
+  [{ x1: 1, y1: 0, x2: 1, y2: 10 }]
+);
+const arrowMarker = createMarker(
+  "arrow",
+  [
+    "viewBox",
+    "0 0 10 10",
+    "refX",
+    "5",
+    "refY",
+    "5",
+    "markerUnits",
+    "strokeWidth",
+    "markerWidth",
+    "10",
+    "markerHeight",
+    "10",
+  ],
+  [
+    { x1: 0, y1: 5, x2: 10, y2: 5 },
+    { x1: 10, y1: 5, x2: 0, y2: 10 },
+    { x1: 0, y1: 0, x2: 10, y2: 5 },
+  ]
+);
+export function createTimelineSVG() {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.id = "timeline";
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  defs.append(tickMarker, arrowMarker);
+  const line = createLine({ x1: 5, y1: 8, x2: 415, y2: 8 });
+  line.setAttribute("stroke", "#333");
+  line.setAttribute("stroke-width", "1.5px");
+  line.setAttribute("marker-start", "url(#tick)");
+  line.setAttribute("marker-end", "url(#arrow)");
+  svg.append(defs, line);
+  return svg;
+}
+function createInputField(type: string, name: string, value = "") {
+  const input = document.createElement("input");
+  input.id = name;
+  input.type = type;
+  input.name = name;
+  input.value = value;
+  return input;
+}
+function createSpan(text: string) {
+  const span = document.createElement("span");
+  span.textContent = text;
+  return span;
+}
+function createLabel(text: string, link: string) {
+  const label = document.createElement("label");
+  label.setAttribute("for", link);
+  const span = createSpan(text);
+  label.appendChild(span);
+  return label;
+}
 export function createTimelineFrame(duration: number) {
   const div = document.createElement("div");
   div.style.display = "flex";
@@ -102,10 +129,17 @@ export function createTimelineFrame(duration: number) {
   const span = document.createElement("span");
   span.id = "animationDuration";
   span.innerText = `${duration}ms`;
-  timelineSVG.id = "timeline";
-  div.appendChild(timelineSVG);
+  div.appendChild(createTimelineSVG());
   div.appendChild(span);
-  div.appendChild(inputField);
+  const inputField = createInputField(
+    "number",
+    "animationDurationInput",
+    "2000"
+  );
+  const label = createLabel("ms", "animationDurationInput");
+  label.className = "hidden";
+  label.prepend(inputField);
+  div.appendChild(label);
   return div;
 }
 export function createText(initCoord: Coord) {
