@@ -80,6 +80,7 @@ export function createCircle(initCoords: CoordPair) {
   circle.id = uid();
   circle.update(initCoords);
   circle.setAttribute("stroke", "#333");
+  circle.setAttribute("stroke-width", "3px");
   circle.setAttribute("fill", "transparent");
 
   return circle;

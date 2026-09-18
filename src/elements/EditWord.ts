@@ -1,4 +1,4 @@
-import type { UpdateAttributeEvent } from "../types";
+import { dispatchUpdateAttribute } from "../helper";
 
 export class EditWord extends HTMLElement {
   constructor() {
@@ -38,17 +38,13 @@ export class EditWord extends HTMLElement {
     form.addEventListener("submit", (e) => {
       updateDisplay();
       e.preventDefault();
-      const customEvent = new CustomEvent("updateattribute", {
-        bubbles: true,
-        composed: true,
-        detail: {
-          id: this.dataId(),
-          key: this.dataKey(),
-          value: input.value,
-          animate: this.dataAnimate(),
-        },
-      } as UpdateAttributeEvent);
-      this.dispatchEvent(customEvent);
+      dispatchUpdateAttribute(
+        this,
+        this.dataId(),
+        this.dataKey(),
+        input.value,
+        this.dataAnimate()
+      );
     });
 
     input.addEventListener("blur", updateDisplay);

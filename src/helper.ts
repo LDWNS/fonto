@@ -97,6 +97,26 @@ function createAnimateNode(
   animateNode.setAttribute("begin", "0s");
   return animateNode;
 }
+function dispatchUpdateAttribute(
+  element: HTMLElement,
+  id: string,
+  key: string,
+  value?: string,
+  animate?: boolean
+) {
+  element.dispatchEvent(
+    new CustomEvent("updateattribute", {
+      bubbles: true,
+      composed: true,
+      detail: {
+        id: id,
+        key: key,
+        value: value,
+        animate: animate,
+      },
+    })
+  );
+}
 
 export {
   uid,
@@ -109,4 +129,5 @@ export {
   isEditableSVGElement,
   pathSegmentToString,
   createAnimateNode,
+  dispatchUpdateAttribute,
 };

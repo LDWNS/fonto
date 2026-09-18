@@ -69,6 +69,7 @@ export function createLine(initCoords: CoordPair) {
   line.id = uid();
   line.update(initCoords);
   line.setAttribute("stroke", "#333");
+  line.setAttribute("stroke-width", "3px");
 
   return line;
 }
