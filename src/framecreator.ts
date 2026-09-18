@@ -1,6 +1,7 @@
 import DOMPurify from "dompurify";
-import { uid } from "./helper";
+import { dispatchUpdateAttribute, uid } from "./helper";
 import type { Coord } from "./types";
+import type { EditableAttributeList } from "./elements/EditableAttributeList";
 export function createSVGFrame() {
   const frame = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   frame.setAttribute("id", "svg-canvas");
@@ -13,13 +14,9 @@ export function createRightContainer() {
   const frame = document.createElement("div");
   return frame;
 }
-export function createRightContainerElement(
-  id: string,
-  attributes: Map<string, string>
-) {
+export function createRightContainerElement(id: string) {
   const frame = document.createElement("div");
   frame.setAttribute("id", "rce-" + id);
-  attributes.entries().forEach((k, v) => {});
   return frame;
 }
 export function createTextAreaFrame() {
@@ -121,4 +118,42 @@ export function createText(initCoord: Coord) {
   text.setAttribute("fill", "#333");
 
   return text;
+}
+
+export function createEditableListItem(
+  ela: EditableAttributeList,
+  id: string,
+  name: string,
+  value: string
+) {
+  const li = document.createElement("li");
+  const isPinned = name.includes("x") || name.includes("y") || name === "r";
+  const isAnimated = ela.activated.includes(name);
+  if (isPinned) {
+    const col3 = document.createElement("span");
+    col3.className = "col-3";
+    col3.innerText = value;
+    ela.relatedAttributes.set(name, col3);
+    li.append(col3);
+  } else {
+    li.innerHTML = `<edit-word class="col-3" data-id="${id}" data-key="${name}" data-animate="${isAnimated}" data-value>${value}</edit-word>`;
+  }
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.className = "col-1";
+  checkbox.name = `${id}-${name}`;
+  checkbox.id = `${id}-${name}`;
+  checkbox.checked = isAnimated;
+  checkbox.dataset.value = value;
+  checkbox.disabled = !ela.activatable || isPinned;
+  checkbox.addEventListener("change", (_) => {
+    dispatchUpdateAttribute(checkbox, id, name, value, checkbox.checked);
+  });
+  const label = document.createElement("label");
+  label.className = "col-2";
+  label.setAttribute("for", `${id}-${name}`);
+  label.innerText = name + ": ";
+
+  li.prepend(checkbox, label);
+  return li;
 }

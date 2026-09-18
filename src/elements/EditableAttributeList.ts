@@ -1,10 +1,18 @@
+import { createEditableListItem } from "../framecreator";
+import { dispatchUpdateAttribute } from "../helper";
 import type { EditableSVGElement, UpdateAttributeEvent } from "../types";
 
 export class EditableAttributeList extends HTMLElement {
+  form: {
+    id: string;
+    key: HTMLInputElement;
+    value: HTMLInputElement;
+  } | null;
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
     this.itemList = null;
+    this.form = null;
     this.relatedAttributes = new Map();
     this.fullRender();
   }
@@ -14,12 +22,11 @@ export class EditableAttributeList extends HTMLElement {
 
     // get attribute values from getters
     editableListContainer.classList.add("editable-list");
-    const name = this.title;
+    const targetId = this.targetId;
 
     editableListContainer.innerHTML = `
         <style>
           .editable-list {
-            margin-right: .5rem; 
             border-radius: 2px;
             border: solid 1px #fff;
             padding: .5rem;
@@ -27,14 +34,19 @@ export class EditableAttributeList extends HTMLElement {
           li {
             display: grid;
             grid-template-columns: 1.2rem 7rem 3.5rem;
+            font-size: .8rem;
+            align-items: center;
+
             .col-1 {
               grid-column: 1;
             }
             .col-2 {
               grid-column: 2;
+              
             }
             .col-3 {
               grid-column: 3;
+              text-align: right;
             }
           }
           div > div {
@@ -50,43 +62,33 @@ export class EditableAttributeList extends HTMLElement {
             margin: 0;
             padding: 0;
           }
+          form {
+            opacity: .8;
+            &:focus-within {
+              opacity: 1;
+            }
+          }
+          input[type="text"] {
+            width: 40%;
+          }
           .hidden {display: none;}
         </style>
-        <h3>${name}</h3>
+        <h3>${targetId}</h3>
         <ul class="item-list">
         </ul>
-        <div class="hidden">
-          <label>add</label>
-          <input class="add-new-list-item-input" type="text">
-          <button class="editable-list-add-item icon">&oplus;</button>
-        </div>
+        <form>
+          <input class="add-new-key" type="text">:
+          <input class="add-new-value" type="text">
+          <input type="submit" hidden />
+        </form>
       `;
     this.itemList = editableListContainer.querySelector(
       ".item-list"
     ) as HTMLUListElement;
     // binding methods
     this.addListItem = this.addListItem.bind(this);
-    this.handleRemoveItemListeners = this.handleRemoveItemListeners.bind(this);
+    this.handleAddListeners = this.handleAddListeners.bind(this);
     this.removeListItem = this.removeListItem.bind(this);
-    editableListContainer.addEventListener(
-      "updateattribute",
-      (ev: UpdateAttributeEvent) => {
-        const item: EditableSVGElement | null = document.querySelector(
-          `#${ev.detail.id}`
-        );
-        if (item) {
-          item.setAttribute(ev.detail.key, ev.detail.value);
-          if (ev.detail.animate) {
-            item.animatedProperties.add(ev.detail.key);
-            this.activated.push(ev.detail.key);
-          } else {
-            item.animatedProperties.delete(ev.detail.key);
-            this.activated = this.activated.filter((el) => el != ev.detail.key);
-          }
-          this.renderList(item.attributes);
-        }
-      }
-    );
 
     if (attrs) this.renderList(attrs);
 
@@ -103,45 +105,8 @@ export class EditableAttributeList extends HTMLElement {
         id = value;
         continue;
       }
-      const li = document.createElement("li");
-      const isPinned = name.includes("x") || name.includes("y") || name === "r";
-      const isAnimated = this.activated.includes(name);
-      if (isPinned) {
-        const col3 = document.createElement("span");
-        col3.className = "col-3";
-        col3.innerText = value;
-        this.relatedAttributes.set(name, col3);
-        li.append(col3);
-      } else {
-        li.innerHTML = `<edit-word class="col-3" data-id="${id}" data-key="${name}" data-animate="${isAnimated}" data-value>${value}</edit-word>`;
-      }
-      const checkbox = document.createElement("input");
-      checkbox.type = "checkbox";
-      checkbox.className = "col-1";
-      checkbox.name = `${id}-${name}`;
-      checkbox.id = `${id}-${name}`;
-      checkbox.checked = isAnimated;
-      checkbox.addEventListener("change", (_) => {
-        const customEvent = new CustomEvent("updateattribute", {
-          bubbles: true,
-          composed: true,
-          detail: {
-            id: id,
-            key: name,
-            value: value,
-            animate: checkbox.checked,
-          },
-        } as UpdateAttributeEvent);
-        checkbox.dispatchEvent(customEvent);
-      });
-      checkbox.disabled = !this.activatable || isPinned;
-      const label = document.createElement("label");
-      label.className = "col-2";
-      label.setAttribute("for", `${id}-${name}`);
-      label.innerText = name + ": ";
-
-      li.prepend(checkbox, label);
-      this.itemList?.appendChild(li);
+      const li2 = createEditableListItem(this, this.form!.id, name, value);
+      this.itemList?.appendChild(li2);
     }
   }
 
@@ -159,53 +124,69 @@ export class EditableAttributeList extends HTMLElement {
     }
   }
 
-  static observedAttributes = ["title", "activateAble"];
+  static observedAttributes = ["targetId", "activateAble"];
   attributeChangedCallback(_: string, __: string, ___: string) {
     this.fullRender();
   }
 
   // add items to the list
-  addListItem(_: PointerEvent) {
-    const textInput = this.shadowRoot!.querySelector(
-      ".add-new-list-item-input"
-    ) as HTMLInputElement;
+  addListItem(e: SubmitEvent) {
+    const li = createEditableListItem(
+      this,
+      this.form!.id,
+      this.form!.key.value,
+      this.form!.value.value
+    );
 
-    if (textInput.value) {
-      const li = document.createElement("li");
-      const button = document.createElement("button");
-      const childrenLength = this.itemAttributes.size;
+    this.itemList!.appendChild(li);
+    dispatchUpdateAttribute(
+      li,
+      this.form!.id,
+      this.form!.key.value,
+      this.form!.value.value,
+      false
+    );
 
-      li.textContent = textInput.value;
-      button.classList.add("editable-list-remove-item", "icon");
-      button.innerHTML = "&ominus;";
-
-      this.itemList!.appendChild(li);
-      this.itemList!.children[childrenLength].appendChild(button);
-
-      this.handleRemoveItemListeners([button]);
-
-      textInput.value = "";
-    }
+    this.form!.key.value = "";
+    this.form!.value.value = "";
+    e.preventDefault();
   }
   itemList: HTMLUListElement | null;
   relatedAttributes: Map<string, HTMLSpanElement>;
   // fires after the element has been attached to the DOM
   connectedCallback() {
+    this.fullRender();
     const removeElementButtons = [
       ...this.shadowRoot!.querySelectorAll(".editable-list-remove-item")!,
     ] as HTMLButtonElement[];
-    const addElementButton = this.shadowRoot!.querySelector(
-      ".editable-list-add-item"
-    ) as HTMLButtonElement;
-
+    const form = this.shadowRoot!.querySelector("form") as HTMLFormElement;
     this.itemList = this.shadowRoot!.querySelector(".item-list");
+    this.form = {
+      id: this.targetId,
+      key: form.querySelector(".add-new-key") as HTMLInputElement,
+      value: form.querySelector(".add-new-value") as HTMLInputElement,
+    };
 
-    this.handleRemoveItemListeners(removeElementButtons);
-    addElementButton.addEventListener("click", this.addListItem, false);
+    this.addEventListener("updateattribute", (ev: UpdateAttributeEvent) => {
+      const item: EditableSVGElement | null = document.querySelector(
+        `#${ev.detail.id}`
+      );
+      if (item) {
+        item.setAttribute(ev.detail.key, ev.detail.value);
+        if (ev.detail.animate) {
+          item.animatedProperties.add(ev.detail.key);
+          this.activated.push(ev.detail.key);
+        } else {
+          item.animatedProperties.delete(ev.detail.key);
+          this.activated = this.activated.filter((el) => el != ev.detail.key);
+        }
+      }
+    });
+    this.handleAddListeners(removeElementButtons, "click", this.removeListItem);
+    this.handleAddListeners([form], "submit", this.addListItem);
   }
-
-  get title() {
-    return this.getAttribute("title") || "";
+  get targetId() {
+    return this.getAttribute("targetId") || "";
   }
   get activatable() {
     return this.getAttribute("activatable") === "true" ? true : false;
@@ -224,13 +205,26 @@ export class EditableAttributeList extends HTMLElement {
     return itemAttributes;
   }
 
-  handleRemoveItemListeners(arrayOfElements: HTMLElement[]) {
+  handleAddListeners<K extends keyof HTMLElementEventMap>(
+    arrayOfElements: HTMLElement[],
+    type: K,
+    handler: (e: HTMLElementEventMap[K]) => void
+  ) {
     arrayOfElements.forEach((element) => {
-      element.addEventListener("click", this.removeListItem, false);
+      element.addEventListener(type, handler, false);
     });
   }
 
   removeListItem(e: PointerEvent) {
     ((e.target as HTMLElement).parentNode as HTMLElement).remove();
+  }
+  handleCheckboxChangeEvent(this: HTMLInputElement, _: Event): void {
+    dispatchUpdateAttribute(
+      this,
+      this.id,
+      this.name,
+      this.dataset.value,
+      this.checked
+    );
   }
 }

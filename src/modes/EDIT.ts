@@ -88,7 +88,7 @@ const loadRightContainer = (
     // add elements to rightContainer
     // make sure to add listeners
     const el = document.createElement("editable-list") as EditableAttributeList;
-    el.setAttribute("title", en.id);
+    el.setAttribute("targetId", en.id);
     el.setAttribute("activatable", "" + activatable);
     el.activated = [...en.animatedProperties];
 
@@ -100,7 +100,7 @@ const loadRightContainer = (
 const updateRightContainer = (ep: EditPoint) => {
   if (currentPath) {
     const item = document.querySelector(
-      `editable-list[title="${currentPath.id}"]`
+      `editable-list[targetId="${currentPath.id}"]`
     );
     if (item) {
       (item as EditableAttributeList).updateAttribute(
@@ -140,13 +140,6 @@ export const EDIT_MODE: Mode = {
       loadRightContainer(
         editNodes,
         s.data["bottom-bar"]?.currentKeyFrameIndex === 0
-      );
-      document.addEventListener(
-        "updateattribute",
-        (e: UpdateAttributeEvent) => {
-          const item = document.querySelector("#" + e.detail.id);
-          item?.setAttribute(e.detail.key, e.detail.value);
-        }
       );
     },
     modeExit: (s: App) => {

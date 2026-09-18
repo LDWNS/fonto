@@ -60,10 +60,6 @@ g {
   cursor: grab;
 }
 svg#svg-canvas {
-  line,
-  circle:not([data-edit]) {
-    stroke-width: 3px;
-  }
   .selected {
     stroke: blue;
     &:hover {
@@ -131,7 +127,7 @@ ul.inputHelp {
 
   &#mainInputHelp {
     top: 0;
-    left: 101%;
+    right: 101%;
     span:first-child {
       min-width: 3rem;
       font-size: 0.8rem;
@@ -184,6 +180,6 @@ label {
 }
 #rightContainer {
   position: absolute;
-  right: 100%;
+  left: 101%;
   top: 0;
 }
