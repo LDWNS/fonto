@@ -28,8 +28,10 @@ import { EditPointType } from "../types/geometry";
 let currentKeyframe: TimeLineFrame;
 let keyframes: TimeLineFrame[] = [];
 const toggleDurationInput = () => {
-  const animationDurationDisplay = frame.querySelector("#animationDuration");
-  const animationDurationInput = frame.querySelector("#animationDurationInput");
+  const animationDurationDisplay = frame.querySelector(`#animationDuration`);
+  const animationDurationInput = frame.querySelector(
+    `[for="animationDurationInput"]`
+  );
   animationDurationDisplay?.classList.toggle("hidden");
   const inputHidden = animationDurationInput?.classList.toggle("hidden");
   if (!inputHidden && animationDurationInput) {
@@ -70,7 +72,7 @@ const mousedown: MousedownInputHandler = {
       keyframes: keyframes,
       currentKeyFrameIndex: index,
     };
-    s.cycle()
+    s.cycle();
   },
 };
 const mouseup: MouseupInputHandler = {
@@ -124,7 +126,7 @@ const CLICK: ClickInputHandler = {
     !isEditPoint(e.target) &&
     (s.activeMainFrameMode.name === "NEUTRAL" ||
       !toast("Mode must be NEUTRAL to edit timeline.")),
-  handler: (e, s) => {
+  handler: (e, _) => {
     if ((e.target as HTMLElement).id === "animationDuration") {
       toggleDurationInput();
       return;
@@ -229,7 +231,7 @@ function mapCoordsToTimeline(x: number) {
   return Math.round((x / 415) * duration);
 }
 
-let duration = 5000;
+let duration = 2000;
 const frame = createTimelineFrame(duration);
 export const TIMELINE: Mode = {
   name: "TIMELINE",
