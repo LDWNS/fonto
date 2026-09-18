@@ -127,7 +127,8 @@ export function createEditableListItem(
   value: string
 ) {
   const li = document.createElement("li");
-  const isPinned = name.includes("x") || name.includes("y") || name === "r";
+  const isPinned =
+    name.match(/x\d/) != null || name.match(/y\d/) != null || name === "r";
   const isAnimated = ela.activated.includes(name);
   if (isPinned) {
     const col3 = document.createElement("span");
