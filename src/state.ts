@@ -152,8 +152,9 @@ export class App {
     if (newMode?.events?.preModeEnter && !newMode.events.preModeEnter(this)) {
       return;
     }
-    if (newMode?.events?.modeExit) {
-      newMode.events.modeExit(this);
+    const oldMode = mf ? this.activeMainFrameMode : this.activeBottomBarMode;
+    if (oldMode?.events?.modeExit) {
+      oldMode.events.modeExit(this);
     }
     if (mf) {
       this.mfCycle(newMode);
