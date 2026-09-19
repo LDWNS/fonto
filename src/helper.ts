@@ -77,6 +77,10 @@ function pathSegmentToString(ps: SVGPathSegment): string {
       return `${ps.type} ${ps.coords.x} ${ps.coords.y}`;
     case "C":
       return `${ps.type} ${ps.coords.x1} ${ps.coords.y1} ${ps.coords.x2} ${ps.coords.y2} ${ps.coords.x} ${ps.coords.y}`;
+    case "A":
+      return `${ps.type} ${ps.coords.rx} ${ps.coords.ry} ${ps.coords.xrot} ${ps.coords.laf} ${ps.coords.sf} ${ps.coords.x} ${ps.coords.y}`;
+    case "Z":
+      return `${ps.type}`;
   }
 }
 function createAnimateNode(

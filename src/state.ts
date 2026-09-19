@@ -288,8 +288,4 @@ export class App {
     li.appendChild(span2);
     return li;
   }
-
-  #asArray(a: any | any[]) {
-    return Array.isArray(a) ? a : [a];
-  }
 }

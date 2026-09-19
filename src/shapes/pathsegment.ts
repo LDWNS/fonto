@@ -1,6 +1,7 @@
 import type {
   BaseSVGPathSegment,
   Coord,
+  CoordHeptlet,
   CoordTriplet,
   SVGPathSegment,
 } from "../types";
@@ -23,6 +24,17 @@ export function createMSeg(
     prevSeg: prevSeg,
   };
 }
+export function createZSeg(
+  id: string,
+  prevSeg: SVGPathSegment
+): BaseSVGPathSegment<"Z"> {
+  return {
+    id: id,
+    type: "Z",
+    coords: null,
+    prevSeg: prevSeg,
+  };
+}
 export function createLSeg(
   id: string,
   coord: Coord | number[],
@@ -41,6 +53,29 @@ export function createLSeg(
     prevSeg: prevSeg,
   };
 }
+export function createASeg(
+  id: string,
+  coord: CoordHeptlet | number[],
+  prevSeg: SVGPathSegment
+): BaseSVGPathSegment<"A"> {
+  if (Array.isArray(coord)) {
+    coord = {
+      rx: coord[0],
+      ry: coord[1],
+      xrot: coord[2],
+      laf: coord[3],
+      sf: coord[4],
+      x: coord[5],
+      y: coord[6],
+    };
+  }
+  return {
+    id: id,
+    type: "A",
+    coords: coord,
+    prevSeg: prevSeg,
+  };
+}
 
 export function createCSeg(
   id: string,
@@ -53,8 +88,8 @@ export function createCSeg(
       y1: coord[1],
       x2: coord[2],
       y2: coord[3],
-       x: coord[4],
-       y: coord[5],
+      x: coord[4],
+      y: coord[5],
     };
   }
   return {

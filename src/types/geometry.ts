@@ -115,8 +115,19 @@ interface SVGPathSegmentType {
   M: Coord;
   L: Coord;
   C: CoordTriplet;
+  A: CoordHeptlet;
+  Z: null;
 }
 
+export type CoordHeptlet = {
+  rx: number;
+  ry: number;
+  xrot: number;
+  laf: number;
+  sf: number;
+  x: number;
+  y: number;
+};
 export type CoordTriplet = {
   x: number;
   y: number;
