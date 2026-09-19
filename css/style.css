@@ -16,6 +16,8 @@ textarea {
   border: solid 1px #fff;
 }
 h1 {
+  width: 500px;
+  margin: 0;
   img {
     width: 1.5rem;
     height: 1.5rem;

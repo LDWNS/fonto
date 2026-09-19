@@ -17,6 +17,7 @@ export type {
   Coord,
   CoordPair,
   CoordTriplet,
+  CoordHeptlet,
   EditPoint,
   EditPointType,
   EditableSVGElement,

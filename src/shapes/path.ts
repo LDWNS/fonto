@@ -45,8 +45,8 @@ function edit(this: SVGPathElement, ep: EditPoint, coord: Coord): void {
       if (ep.targetId.endsWith(ps.id)) {
         switch (ep.type) {
           case EditPointType.PATH_1:
-            ps.coords.x = coord.x;
-            ps.coords.y = coord.y;
+            ps.coords!.x = coord.x;
+            ps.coords!.y = coord.y;
             break;
           case EditPointType.PATH_A1:
             ps = ps as BaseSVGPathSegment<"C">;
@@ -83,8 +83,8 @@ function toggleSegmentType(this: SVGPathElement, s: App, ep: EditPoint): void {
             {
               x: ps.coords.x,
               y: ps.coords.y,
-              x1: ps.prevSeg.coords.x + 30,
-              y1: ps.prevSeg.coords.y + 30,
+              x1: ps.prevSeg.coords!.x + 30,
+              y1: ps.prevSeg.coords!.y + 30,
               x2: ps.coords.x - 30,
               y2: ps.coords.y - 30,
             },
