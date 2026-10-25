@@ -110,9 +110,11 @@ export class AnimationAttribute implements Animation {
     for (const prop of this.animatedAttributes) {
       let timings = "";
       let values = "";
-      const sortedValues = this.keyframesPerAttribute.get(prop)!.sort();
+      const sortedValues = this.keyframesPerAttribute
+        .get(prop)!
+        .sort((a, b) => a.keytime - b.keytime);
       const minX = sortedValues[0].keytime;
-      const maxX = sortedValues[sortedValues.length - 1].keytime;
+      const maxX = sortedValues[sortedValues.length - 1].keytime - minX;
       sortedValues.forEach((el) => {
         timings += (el.keytime === 0 ? 0 : (el.keytime - minX) / maxX) + ";";
         values += el.attributeValue + ";";

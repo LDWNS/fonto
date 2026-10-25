@@ -77,9 +77,9 @@ const mouseup: MouseupInputHandler = {
   handler: (_, s) => {
     s.activeMainFrameMode.frame.childNodes.forEach((child) => {
       if (isEditableSVGElement(child)) {
-        (child as EditableSVGElement).animation.setAttributesToKeyframe(
-          movingPoint!.targetId!
-        );
+        const el = child as EditableSVGElement;
+        el.animation.updateKeytime(movingPoint!.targetId, movingPoint!.x());
+        el.animation.setAttributesToKeyframe(movingPoint!.targetId!);
       }
     });
     movingPoint = null;
