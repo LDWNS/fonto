@@ -15,11 +15,11 @@ export function createCAnchorPoints(
   coordA1: Coord,
   coordA2: Coord
 ): [EditPoint, EditPoint] {
-  const a1 = createEditPoint(EditPointType.PATH_A1, ep.targetId, coordA1)
+  const a1 = createEditPoint(EditPointType.PATH_A1, ep.targetId, ["d"], coordA1)
     .setAnchorPoint(ep.prevEditPoint!)
     .setAnchorPoint(ep, true)
     .toggleAnchorLine();
-  const a2 = createEditPoint(EditPointType.PATH_A2, ep.targetId, coordA2)
+  const a2 = createEditPoint(EditPointType.PATH_A2, ep.targetId, ["d"], coordA2)
     .setAnchorPoint(ep)
     .toggleAnchorLine();
   return [a1, a2];
@@ -32,7 +32,7 @@ export function createPathSegmentEditPoint(
   let ep: EditPoint[];
   switch (el.type) {
     case "C":
-      const c = createEditPoint(EditPointType.PATH_1, `${id}-${el.id}`, {
+      const c = createEditPoint(EditPointType.PATH_1, `${id}-${el.id}`, ["d"], {
         x: el.coords.x!,
         y: el.coords.y!,
       }).linkPrev(prevEP);
@@ -51,13 +51,14 @@ export function createPathSegmentEditPoint(
         createEditPoint(
           EditPointType.PATH_1,
           `${id}-${el.id}`,
+          ["d"],
           el.coords
         ).linkPrev(prevEP),
       ];
       break;
     case "A":
       ep = [
-        createEditPoint(EditPointType.PATH_1, `${id}-${el.id}`, {
+        createEditPoint(EditPointType.PATH_1, `${id}-${el.id}`, ["d"], {
           x: el.coords.x,
           y: el.coords.y,
         }).linkPrev(prevEP),
@@ -66,8 +67,6 @@ export function createPathSegmentEditPoint(
     case "Z":
       ep = [];
   }
-  console.log(ep);
-
   prevEP = ep[0];
   return ep;
 }

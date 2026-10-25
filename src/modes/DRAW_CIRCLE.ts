@@ -42,6 +42,7 @@ const CLICK: ClickInputHandler = {
         x2: projCoords.x,
         y2: projCoords.y,
       });
+      currentCircle!.animationInit(s.data.animation);
       circles.push(currentCircle);
       currentCircle = null;
     }

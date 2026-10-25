@@ -8,12 +8,14 @@ export class EditableAttributeList extends HTMLElement {
     key: HTMLInputElement;
     value: HTMLInputElement;
   } | null;
+  currentKeyframeId: string;
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
     this.itemList = null;
     this.form = null;
     this.relatedAttributes = new Map();
+    this.currentKeyframeId = "";
     this.fullRender();
   }
   activated: string[] = [];
@@ -110,16 +112,13 @@ export class EditableAttributeList extends HTMLElement {
     }
   }
 
-  updateAttribute(la: { attrs: string[]; values: number[] }) {
-    for (let i = 0; i < la.attrs.length; i++) {
+  updateAttribute(attrs: string[], values: string[]) {
+    for (let i = 0; i < attrs.length; i++) {
       const valueEl =
-        this.relatedAttributes.get(la.attrs[i]) ??
-        this.itemList?.querySelector(`[data-attribute=${la.attrs[i]}] .col-3`);
+        this.relatedAttributes.get(attrs[i]) ??
+        this.itemList?.querySelector(`[data-attribute=${attrs[i]}] .col-3`);
       if (valueEl) {
-        if (la.attrs[i] === "r") {
-        } else {
-          valueEl.textContent = "" + la.values[i];
-        }
+        valueEl.textContent = "" + values[i];
       }
     }
   }
@@ -174,10 +173,14 @@ export class EditableAttributeList extends HTMLElement {
       if (item) {
         item.setAttribute(ev.detail.key, ev.detail.value);
         if (ev.detail.animate) {
-          item.animatedProperties.add(ev.detail.key);
+          item.animation.updateValue(
+            this.currentKeyframeId,
+            ev.detail.key,
+            ev.detail.value
+          );
           this.activated.push(ev.detail.key);
         } else {
-          item.animatedProperties.delete(ev.detail.key);
+          item.animation.removeAttribute(ev.detail.key);
           this.activated = this.activated.filter((el) => el != ev.detail.key);
         }
       }

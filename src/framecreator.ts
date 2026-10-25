@@ -8,6 +8,7 @@ export function createSVGFrame() {
   frame.setAttribute("width", "500");
   frame.setAttribute("height", "500");
   frame.setAttribute("draggable", "false");
+
   return frame;
 }
 export function createRightContainer() {
@@ -20,7 +21,6 @@ export function createRightContainerElement(id: string) {
   return frame;
 }
 export function createTextAreaFrame() {
-  // <textarea rows="30" cols="20" class="hidden"></textarea>
   const frame = document.createElement("textarea");
   frame.setAttribute("id", "text-area");
   frame.setAttribute("width", "500");

@@ -2,11 +2,7 @@ import { createSVGFrame } from "../framecreator";
 import { pointerToSvgCoords } from "../helper";
 import { ESC } from "../keyhelper";
 import { createLine } from "../shapes/line";
-import type {
-  ClickInputHandler,
-  Coord,
-  MousemoveInputHandler,
-} from "../types";
+import type { ClickInputHandler, Coord, MousemoveInputHandler } from "../types";
 import type { Mode } from "../types/mode";
 import { EDIT_MODE } from "./EDIT";
 
@@ -47,6 +43,7 @@ const CLICK: ClickInputHandler = {
         x2: projCoords.x,
         y2: projCoords.y,
       });
+      currentLine.animationInit(s.data.animation);
       lines.push(currentLine);
       currentLine = null;
     }

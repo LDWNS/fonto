@@ -1,4 +1,5 @@
 import type { App } from "../state";
+import type { TimeLineData, TimeLineFrame } from "./mode";
 
 declare global {
   interface SVGLineElement extends Editable {
@@ -20,17 +21,29 @@ declare global {
 interface Editable {
   getEditPoints(): EditPoint[];
   edit(editPoint: EditPoint, { x, y }: Coord, dx: number, dy: number): void;
-  getRelatedAttributes(editPoint: EditPoint): { attrs: string[]; values: number[] };
-  animatedProperties: Set<string>;
+  animation: Animation;
+  animationInit(keytime: TimeLineData): void;
 }
-export interface AnimationAttributes {
-  animatedAttributes: string[],
-  values: string[],
-  initValues: string[],
-  keyTimes: string,
-  attributes: NamedNodeMap;
+export interface Animation {
+  animatedAttributes: Set<string>;
+  keyframesPerAttribute: Map<string, AnimationKeyframe[]>;
   node: SVGElement;
-  createAnimation(node: SVGElement,duration: string): SVGElement;
+  setAnimationNodes(): void;
+  addAttribute(attribute: string, initValue: string): void;
+  removeAttribute(attribute: string): void;
+  addKeyframe(
+    currentKeyframe: TimeLineFrame,
+    lastKeyframe: TimeLineFrame
+  ): void;
+  updateKeytime(id: string, keytime: number): void;
+  updateValue(id: string, attr: string, value: string): void;
+  updateValues(id: string, attr: string[], value: (string | number)[]): void;
+  setAttributesToKeyframe(keyframeId: string): void;
+}
+export interface AnimationKeyframe {
+  id: string;
+  keytime: number;
+  attributeValue: string;
 }
 export interface SVGLineAnimationAttributes {
   x1: string;
@@ -82,6 +95,7 @@ export enum EditPointType {
 export interface EditPoint extends SVGCircleElement {
   type: EditPointType;
   targetId: string;
+  targetAttributes: string[];
   anchorPoint?: EditPoint;
   anchoredPoints?: EditPoint[];
   anchorLine?: SVGLineElement;
