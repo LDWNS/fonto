@@ -14,7 +14,6 @@ import {
   type EditableSVGElement,
   type MouseupInputHandler,
   type DblClickInputHandler,
-  type UpdateAttributeEvent,
   type Mode,
 } from "../types";
 import { EditPointType } from "../types/geometry";
@@ -40,6 +39,13 @@ const MOVE: MousemoveInputHandler = {
     if (dx !== 0 || dy !== 0) {
       updateRightContainer(movingPoint!);
     }
+
+    const relAttr = movingPoint!.targetAttributes;
+    currentPath?.animation.updateValues(
+      s.data.animation.currentKeyframe!.id,
+      relAttr,
+      relAttr.map((el) => currentPath?.getAttribute(el)!)
+    );
     return;
   },
 };
@@ -78,7 +84,8 @@ const dblclick: DblClickInputHandler = {
 
 const loadRightContainer = (
   editNodes: EditableSVGElement[],
-  activatable = true
+  currentKeyframeId: string,
+  activatable = true,
 ) => {
   const rightContainer = document.getElementById(
     "rightContainer"
@@ -88,9 +95,10 @@ const loadRightContainer = (
     // add elements to rightContainer
     // make sure to add listeners
     const el = document.createElement("editable-list") as EditableAttributeList;
+    el.currentKeyframeId = currentKeyframeId;
     el.setAttribute("targetId", en.id);
     el.setAttribute("activatable", "" + activatable);
-    el.activated = [...en.animatedProperties];
+    el.activated = [...en.animation.animatedAttributes];
 
     rightContainer.appendChild(el);
     el.renderList(en.attributes);
@@ -104,7 +112,8 @@ const updateRightContainer = (ep: EditPoint) => {
     );
     if (item) {
       (item as EditableAttributeList).updateAttribute(
-        currentPath.getRelatedAttributes(ep)
+        ep.targetAttributes,
+        ep.targetAttributes.map((el) => currentPath!.getAttribute(el)!)
       );
     }
   }
@@ -139,7 +148,9 @@ export const EDIT_MODE: Mode = {
       });
       loadRightContainer(
         editNodes,
-        s.data["bottom-bar"]?.currentKeyFrameIndex === 0
+        s.data.animation.currentKeyframe!.id,
+        s.data.animation.keyframes[0]?.id ===
+          s.data.animation.currentKeyframe?.id
       );
     },
     modeExit: (s: App) => {

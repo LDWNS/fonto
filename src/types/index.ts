@@ -19,8 +19,8 @@ export type {
   CoordTriplet,
   CoordHeptlet,
   EditPoint,
-  EditPointType,
   EditableSVGElement,
   SVGPathSegment,
-  AnimationAttributes,
+  Animation,
+  AnimationKeyframe,
 } from "./geometry.ts";

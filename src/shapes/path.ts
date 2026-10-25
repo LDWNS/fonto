@@ -6,6 +6,7 @@ import type {
   CoordTriplet,
   EditPoint,
   SVGPathSegment,
+  TimeLineData,
 } from "../types";
 import { EditPointType } from "../types/geometry";
 import { createCSeg, createLSeg } from "./pathsegment";
@@ -15,6 +16,7 @@ import {
   createPathSegmentEditPoint,
   getPathSegments,
 } from "./pathhelper";
+import { AnimationAttribute } from "../elements/AnimationAttributes";
 
 function coordToD({ x, y }: CoordTriplet, type: string = "M"): string {
   return `${type} ${x} ${y}`;
@@ -66,12 +68,6 @@ function edit(this: SVGPathElement, ep: EditPoint, coord: Coord): void {
     this.setAttribute("d", pathString.trim());
   }
 }
-function getRelatedAttributes(
-  this: SVGCircleElement,
-  _: EditPoint
-): { attrs: string[]; values: number[] } {
-  return { attrs: [], values: [] };
-}
 function toggleSegmentType(this: SVGPathElement, s: App, ep: EditPoint): void {
   let pathString = "";
   this.pathSegs = this.pathSegs!.map((ps) => {
@@ -117,8 +113,8 @@ export function setPathMethods(path: SVGPathElement) {
   path.edit = edit;
   path.getEditPoints = getEditPoints;
   path.toggleSegmentType = toggleSegmentType;
-  path.getRelatedAttributes = getRelatedAttributes;
-  path.animatedProperties = new Set(["d"]);
+  // path.animatedProperties = new Set(["d"]);
+  path.animationInit = animationInit;
   return path;
 }
 export function createPath(initCoord: Coord) {
@@ -135,4 +131,7 @@ export function createPath(initCoord: Coord) {
   path.setAttribute("stroke-width", "2px");
   path.setAttribute("fill", "none");
   return path;
+}
+function animationInit(this: SVGLineElement, timeLineFrame: TimeLineData) {
+  this.animation = new AnimationAttribute(this, ["d"], timeLineFrame);
 }

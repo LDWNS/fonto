@@ -1,7 +1,8 @@
 import { createEditPoint } from "./editpoint";
 import { distance, uid } from "../helper";
-import type { Coord, CoordPair, EditPoint } from "../types";
+import type { Coord, CoordPair, EditPoint, TimeLineData } from "../types";
 import { EditPointType } from "../types/geometry";
+import { AnimationAttribute } from "../elements/AnimationAttributes";
 
 function update(this: SVGCircleElement, { x1, y1, x2, y2 }: CoordPair) {
   if (x1 !== undefined) this.setAttribute("cx", x1.toString());
@@ -28,11 +29,11 @@ function edit(this: SVGCircleElement, ep: EditPoint, { x, y }: Coord) {
   }
 }
 function getEditPoints(this: SVGCircleElement) {
-  const ep1 = createEditPoint(EditPointType.CIRCLE_1, this.id, {
+  const ep1 = createEditPoint(EditPointType.CIRCLE_1, this.id, ["cx", "cy"], {
     x: this.cx.baseVal.value,
     y: this.cy.baseVal.value,
   });
-  const ep2 = createEditPoint(EditPointType.CIRCLE_2, this.id, {
+  const ep2 = createEditPoint(EditPointType.CIRCLE_2, this.id, ["r"], {
     x: this.rx,
     y: this.ry,
   })
@@ -40,32 +41,13 @@ function getEditPoints(this: SVGCircleElement) {
     .toggleAnchorLine();
   return [ep1, ep2];
 }
-function getRelatedAttributes(
-  this: SVGCircleElement,
-  ep: EditPoint
-): { attrs: string[]; values: number[] } {
-  switch (ep.type) {
-    case EditPointType.CIRCLE_1:
-      return {
-        attrs: ["x1", "y1"],
-        values: [this.cx.baseVal.value, this.cy.baseVal.value],
-      };
-    case EditPointType.CIRCLE_2:
-      return {
-        attrs: ["x2", "y2", "r"],
-        values: [this.rx, this.rx, parseInt(this.getAttribute("r") ?? "-1")],
-      };
-    default:
-      return { attrs: [], values: [] };
-  }
-}
 
 export function setCircleMethods(circle: SVGCircleElement) {
   circle.update = update;
   circle.edit = edit;
   circle.getEditPoints = getEditPoints;
-  circle.getRelatedAttributes = getRelatedAttributes;
-  circle.animatedProperties = new Set(["cx", "cy", "r"]);
+  // circle.getRelatedAttributes = getRelatedAttributes;
+  circle.animationInit = animationInit;
   return circle;
 }
 
@@ -84,4 +66,12 @@ export function createCircle(initCoords: CoordPair) {
   circle.setAttribute("fill", "transparent");
 
   return circle;
+}
+
+function animationInit(this: SVGLineElement, timeLineFrame: TimeLineData) {
+  this.animation = new AnimationAttribute(
+    this,
+    ["cx", "cy", "r"],
+    timeLineFrame
+  );
 }

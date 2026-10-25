@@ -1,9 +1,7 @@
-import { keyframesToAnimation } from "../animationhelper";
 import { createSVGFrame } from "../framecreator";
+import { isEditableSVGElement } from "../helper";
 import { ESC } from "../keyhelper";
-import type {
-  Mode,
-} from "../types";
+import type { Mode } from "../types";
 const frame = createSVGFrame();
 export const PLAY: Mode = {
   name: "PLAY",
@@ -12,12 +10,17 @@ export const PLAY: Mode = {
   inputHandlers: [ESC],
   events: {
     modeEnter(s) {
-      // const duration = s.data["bottom-bar"]?.duration!;
-      let keyframes = s.data["bottom-bar"]?.keyframes!;
-      s.activeMainFrameMode.frame.textContent = "";
-      keyframesToAnimation(keyframes, s.data["bottom-bar"]?.duration!, (se) =>
-        s.activeMainFrameMode.frame.appendChild(se)
-      );
+      s.activeMainFrameMode.frame.childNodes.forEach((el) => {
+        if (isEditableSVGElement(el)) {
+          el.animation.setAnimationNodes();
+        }
+      });
+    },
+    modeExit(s) {
+      var elements = s.activeMainFrameMode.frame.querySelectorAll("animate");
+      for (var i = 0; i < elements.length; i++) {
+        elements[i].remove();
+      }
     },
   },
 };

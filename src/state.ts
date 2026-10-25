@@ -29,8 +29,14 @@ export class App {
 
   modeListeners: any;
 
-  data: FrameData = { "svg-canvas": [] };
-
+  data: FrameData = {
+    "svg-canvas": [],
+    animation: {
+      duration: 2000,
+      keyframes: [],
+      width: 415
+    },
+  };
   // SELECT MODE
   selectedNodes: EditableSVGElement[];
 
@@ -83,6 +89,16 @@ export class App {
         this.#handleEvent(event, handler);
       }
     });
+  }
+
+  get animationDuration() {
+    const keyframes = this.data.animation.keyframes!;
+    const timelineDuration = this.data.animation.duration!;
+    const minX = keyframes[0].x;
+    const maxX = keyframes[keyframes.length - 1].x;
+    const start = 0;
+    const end = maxX - minX;
+    return ((end - start) / 415) * timelineDuration;
   }
 
   private addEventListener<K extends keyof DocumentEventMap>(
@@ -219,7 +235,8 @@ export class App {
         .filter(
           (mode) =>
             mode.alwaysAvailable ||
-            this.data["bottom-bar"]?.currentKeyFrameIndex === 0
+            this.data.animation.keyframes[0]?.id ===
+              this.data.animation.currentKeyframe?.id
         )
         .forEach((mode) => {
           if (!mode.modeKey) {

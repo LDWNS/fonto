@@ -6,10 +6,7 @@ import {
   toast,
   uid,
 } from "../helper";
-import { setCircleMethods } from "../shapes/circle";
 import { createEditPoint } from "../shapes/editpoint";
-import { setLineMethods } from "../shapes/line";
-import { setPathMethods } from "../shapes/path";
 import type {
   ClickInputHandler,
   Coord,
@@ -55,22 +52,17 @@ const mousedown: MousedownInputHandler = {
   validator: (e, s) =>
     isEditPoint(e.target) && s.activeMainFrameMode.name === "NEUTRAL",
   handler: (e, s) => {
-    saveState(s.activeMainFrameMode);
     currentKeyframe.point.classList.remove("active");
     movingPoint = e.target as EditPoint;
     currentKeyframe = keyframes.find((k) => k.id === movingPoint!.targetId)!;
     currentKeyframe.point.classList.add("active");
-    s.activeMainFrameMode.frame.textContent = "";
-    currentKeyframe.children.forEach((child) =>
-      s.activeMainFrameMode.frame.appendChild(child)
-    );
     keyframes = keyframes?.sort((a, b) => a.x - b.x);
-    const index = keyframes.map((k) => k.x).indexOf(currentKeyframe.x);
-    s.data["svg-canvas"] = currentKeyframe.children;
-    s.data["bottom-bar"] = {
+    s.activeMainFrameMode.frame.textContent = "";
+    s.data.animation = {
       duration: duration,
       keyframes: keyframes,
-      currentKeyFrameIndex: index,
+      currentKeyframe: currentKeyframe,
+      width: 410,
     };
     s.cycle();
   },
@@ -82,7 +74,14 @@ const mouseup: MouseupInputHandler = {
     !!movingPoint &&
     (s.activeMainFrameMode.name === "NEUTRAL" ||
       !toast("Mode must be NEUTRAL to edit timeline.")),
-  handler: (_, __) => {
+  handler: (_, s) => {
+    s.activeMainFrameMode.frame.childNodes.forEach((child) => {
+      if (isEditableSVGElement(child)) {
+        (child as EditableSVGElement).animation.setAttributesToKeyframe(
+          movingPoint!.targetId!
+        );
+      }
+    });
     movingPoint = null;
   },
 };
@@ -97,25 +96,24 @@ const doubleClick: DblClickInputHandler = {
       e,
       s.activeBottomBarMode.frame.getBoundingClientRect()
     );
-    const newChildren: EditableSVGElement[] = saveState(s.activeMainFrameMode);
     currentKeyframe.point.classList.remove("active");
-    currentKeyframe = createKeyframePoint(
-      projCoords.x,
-      s.activeBottomBarMode,
-      newChildren
-    );
+    const lastKeyframe = currentKeyframe;
+    currentKeyframe = createKeyframePoint(projCoords.x, s.activeBottomBarMode);
     currentKeyframe.point.classList.add("active");
-    s.activeMainFrameMode.frame.textContent = "";
-    currentKeyframe.children.forEach((child) =>
-      s.activeMainFrameMode.frame.appendChild(child)
-    );
     keyframes = keyframes?.sort((a, b) => a.x - b.x);
-    const index = keyframes.map((k) => k.x).indexOf(currentKeyframe.x);
-    s.data["svg-canvas"] = currentKeyframe.children;
-    s.data["bottom-bar"] = {
+    s.activeMainFrameMode.frame.childNodes.forEach((child) => {
+      if (isEditableSVGElement(child)) {
+        (child as EditableSVGElement).animation.addKeyframe(
+          currentKeyframe,
+          lastKeyframe
+        );
+      }
+    });
+    s.data.animation = {
       duration: duration,
       keyframes: keyframes,
-      currentKeyFrameIndex: index,
+      currentKeyframe: currentKeyframe,
+      width: 415,
     };
     s.cycle();
   },
@@ -133,46 +131,13 @@ const CLICK: ClickInputHandler = {
     }
   },
 };
-function saveState(m: Mode) {
-  const oldChildren: EditableSVGElement[] = [];
-  const newChildren: EditableSVGElement[] = [];
-  m.frame.childNodes.forEach((node) => {
-    oldChildren.push(node as EditableSVGElement);
-    let clone = node.cloneNode(true) as EditableSVGElement;
-    switch ((clone as SVGElement).tagName.toLowerCase()) {
-      case "line":
-        clone = setLineMethods(clone as SVGLineElement);
-        break;
-      case "circle":
-        clone = setCircleMethods(clone as SVGCircleElement);
-        clone.rx = (node as SVGCircleElement).rx;
-        clone.ry = (node as SVGCircleElement).ry;
-        break;
-      case "path":
-        clone = setPathMethods(clone as SVGPathElement);
-        break;
-      default:
-        toast(
-          `Tag not supported by TIMELINE: <${(clone as SVGElement).tagName}>`
-        );
-    }
-    clone.animatedProperties = (node as EditableSVGElement).animatedProperties;
-    if (isEditableSVGElement(clone)) {
-      newChildren.push(clone);
-    }
-  });
-  currentKeyframe.children = oldChildren;
-  return newChildren;
-}
 const ENTER: KeydownInputHandler = {
   type: "keydown",
   keyCode: "Enter",
   validator: (e, _) => e.target instanceof HTMLInputElement,
   handler: (e, s) => {
     duration = parseInt((e.target as HTMLInputElement).value);
-    if (s.data["bottom-bar"]) {
-      s.data["bottom-bar"].duration = duration;
-    }
+    s.data.animation.duration = duration;
     (
       document.querySelector("#animationDuration") as HTMLElement
     ).innerText = `${duration}ms`;
@@ -189,13 +154,15 @@ const ESC: KeydownInputHandler = {
     toggleDurationInput();
   },
 };
-const createKeyframePoint = (
-  x: number,
-  mode: Mode,
-  children: EditableSVGElement[]
-) => {
+const createKeyframePoint = (x: number, mode: Mode) => {
   const svg = mode.frame.querySelector("svg");
-  const ep = createEditPoint(EditPointType.TIMELINE, uid(), { x: x, y: 8 }, 4);
+  const ep = createEditPoint(
+    EditPointType.TIMELINE,
+    uid(),
+    [],
+    { x: x, y: 8 },
+    4
+  );
   ep.id = ep.targetId;
   ep.classList.add("point");
   svg?.appendChild(ep);
@@ -205,7 +172,6 @@ const createKeyframePoint = (
     id: ep.id,
     x: x,
     point: ep,
-    children: children,
     update: function (this: TimeLineFrame, projCoords?: Coord) {
       if (projCoords) {
         const clampedX = clampX(projCoords.x);
@@ -239,15 +205,10 @@ export const TIMELINE: Mode = {
   inputHandlers: [CLICK, ENTER, ESC, mousedown, mouseup, MOVE, doubleClick],
   events: {
     modeEnter(s) {
-      currentKeyframe = createKeyframePoint(5, s.activeBottomBarMode, []);
+      currentKeyframe = createKeyframePoint(5, s.activeBottomBarMode);
       currentKeyframe.point.classList.add("active");
-      if (!s.data["bottom-bar"]) {
-        s.data["bottom-bar"] = {
-          duration: duration,
-          keyframes: keyframes,
-          currentKeyFrameIndex: 0,
-        };
-      }
+      s.data.animation.currentKeyframe = currentKeyframe;
+      s.data.animation.keyframes.push(currentKeyframe);
     },
   },
 };

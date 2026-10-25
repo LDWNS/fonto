@@ -14,21 +14,18 @@ export type Mode = {
 };
 
 export type FrameData = {
-  [K in keyof AppFrames]?: AppFrames[K];
+  "svg-canvas": EditableSVGElement[];
+  animation: TimeLineData;
 };
-export interface AppFrames {
-  "svg-canvas": SVGElement[];
-  "bottom-bar": TimeLineData;
-}
 export interface TimeLineData {
+  width: number;
   duration: number;
-  keyframes?: TimeLineFrame[];
-  currentKeyFrameIndex: number;
+  keyframes: TimeLineFrame[];
+  currentKeyframe?: TimeLineFrame;
 }
 export interface TimeLineFrame {
   update(projCoord?: Coord): void;
   id: string;
   x: number;
   point: EditPoint;
-  children: EditableSVGElement[];
 }

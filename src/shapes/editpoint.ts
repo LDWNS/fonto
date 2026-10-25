@@ -1,12 +1,13 @@
 import { distance, toast } from "../helper";
 import { createLine } from "./line";
 import type { Coord, CoordPair, EditPoint } from "../types";
-import type { EditPointType } from "../types/geometry";
 import { createText } from "../framecreator";
+import type { EditPointType } from "../types/geometry";
 
 export function createEditPoint(
   type: EditPointType,
   targetId: string,
+  targetAttributes: string[],
   { x, y }: Coord,
   r = 5
 ): EditPoint {
@@ -16,6 +17,7 @@ export function createEditPoint(
   ) as EditPoint;
   ep.type = type;
   ep.targetId = targetId;
+  ep.targetAttributes = targetAttributes;
   ep.setAttribute("data-edit", "true");
   ep.setAttribute("stroke", "#333");
   ep.setAttribute("stroke-width", "2px");

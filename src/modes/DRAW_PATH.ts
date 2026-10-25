@@ -1,11 +1,7 @@
 import { pointerToSvgCoords } from "../helper";
 import { createPath } from "../shapes/path";
 import { createLine } from "../shapes/line";
-import type {
-  ClickInputHandler,
-  Coord,
-  MousemoveInputHandler,
-} from "../types";
+import type { ClickInputHandler, Coord, MousemoveInputHandler } from "../types";
 import type { Mode } from "../types/mode";
 import { createSVGFrame } from "../framecreator";
 import { ESC } from "../keyhelper";
@@ -50,6 +46,7 @@ const CLICK: ClickInputHandler = {
       });
       s.activeMainFrameMode.frame.appendChild(currentPath);
       s.activeMainFrameMode.frame.appendChild(previewLine);
+      currentPath.animationInit(s.data.animation);
       paths.push(currentPath);
       lastCoord = projCoords;
     } else {
